@@ -1,0 +1,44 @@
+{
+    "name": "R2.03 Development Environment",
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "installZsh": true,
+            "installOhMyZsh": true,
+            "upgradePackages": true,
+            "username": "vscode",
+            "uid": "1000",
+            "gid": "1000"
+        },
+        "ghcr.io/devcontainers/features/java:1": {
+            "version": "25-zulu",
+            "installMaven": "false",
+            "installGradle": "false"
+        },
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    // onCreateCommand s'exécute au moment du build de l'image devcontainer.
+    // Avec les Codespace prebuilds activés, ça permet que le cache Maven soit
+    // baké directement dans l'image (car les prebuilds stockent l'image, pas
+    // les volumes). bash -lc sert à charger le PATH de SDKMAN (Java).
+    "onCreateCommand": "bash -lc './mvnw -q dependency:go-offline || true' && gh repo set-default \"$(git remote get-url origin | sed 's|.*github.com[:/]||' | sed 's|\\.git$||')\" 2>/dev/null || true",
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "java.jdt.ls.java.home": "/usr/local/sdkman/candidates/java/current",
+                "terminal.integrated.profiles.linux": {
+                    "zsh": { "path": "zsh" }
+                },
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "redhat.telemetry.enabled": false
+            },
+            "extensions": [
+                "vscjava.vscode-java-pack",
+                "redhat.java",
+                "eamodio.gitlens",
+                "GitHub.copilot-chat"
+            ]
+        }
+    },
+    "remoteUser": "vscode"
+}

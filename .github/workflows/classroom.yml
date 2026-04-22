@@ -1,0 +1,46 @@
+# GitHub Classroom autograding workflow.
+# Le bloc autograding (steps Classroom + reporter) est régénéré par
+# update-autograding.sh en fonction des sous-paquets d'exercices
+# détectés. Ne pas éditer à la main le bloc entre marqueurs.
+name: GitHub Classroom Workflow
+
+on: [push]
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  build:
+    name: Autograding
+    if: github.repository != 'IUTInfoAix-R203/template-tp-java'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'zulu'
+          cache: maven
+
+      #@@@AUTOGRADING-BEGIN@@@ (généré par update-autograding.sh, ne pas éditer à la main)
+      - name: Compilation
+        id: compilation
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: Compilation
+          setup-command: ""
+          command: ./mvnw -B -q compile
+          timeout: 5
+          max-score: 100
+
+      - name: Autograding Reporter
+        uses: IUTInfoAix-R202/autograding-grading-reporter@main
+        continue-on-error: true
+        env:
+          COMPILATION_RESULTS: "${{ steps.compilation.outputs.result }}"
+        with:
+          runners: compilation
+      #@@@AUTOGRADING-END@@@

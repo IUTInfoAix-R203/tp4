@@ -1,0 +1,4 @@
+# Auto-assign de l'enseignant comme reviewer sur toutes les PRs.
+# Principalement utilisé par le workflow template-sync (PRs auto
+# créées depuis template-tp-java vers chaque tpN).
+* @nedseb

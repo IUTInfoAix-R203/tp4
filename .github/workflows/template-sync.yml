@@ -1,0 +1,29 @@
+# Sync with template repository
+name: Template Sync
+
+on:
+  # Run monthly on the 1st at midnight
+  schedule:
+    - cron: "0 0 1 * *"
+  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  repo-sync:
+    if: github.repository != 'IUTInfoAix-R203/template-tp-java'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Sync with template
+        uses: AndreasAugustin/actions-template-sync@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          source_repo_path: IUTInfoAix-R203/tp4
+          upstream_branch: main
+          pr_labels: template-sync
