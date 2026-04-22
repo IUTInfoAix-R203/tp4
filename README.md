@@ -16,7 +16,7 @@
     * [Email](mailto:sebastien.nedjar@univ-amu.fr) pour toute question
 
 
-## TP4 - Refactoring
+## TP4 - Refactoring : transformer sans casser
 
 ## Objectifs de la séance
 
@@ -33,37 +33,50 @@ Les exercices de ce TP sont organisés en progression. Cette progression suit la
 
 | Niveau Bloom | Exercices | Vous serez capable de… | Compétence BUT |
 |---|---|---|---|
-| **Comprendre** | <!-- ex: 1–2 --> | <!-- TODO : objectif de compréhension --> | <!-- ex: C1 AC3 --> |
-| **Appliquer** | <!-- ex: 3–4 --> | <!-- TODO : objectif d'application --> | <!-- ex: C1 AC3 --> |
-| **Analyser / Créer** | <!-- ex: 5–6 --> | <!-- TODO : objectif de création --> | <!-- ex: C1 AC2 ou C4 AC2 --> |
+| **Comprendre** | 1 et 2 | Identifier les <b>code smells</b> classiques (Long Method, Magic Number, Switch Statement, Long Parameter List) et nommer le refactoring qui les corrige | C1 AC2 |
+| **Appliquer** | 1, 2 et 3 | Appliquer <b>Replace Magic Number</b>, <b>Extract Method</b>, <b>Replace Conditional with Polymorphism</b> et <b>Introduce Parameter Object</b> en gardant les tests verts à chaque étape | C1 AC2, C1 AC3 |
+| **Analyser / Créer** | 4 | Refactorer fearlessly un code legacy réel (Gilded Rose) en s'appuyant sur une couverture de tests de caractérisation que vous aurez complétée | C1 AC2, C1 AC3 |
 
-**Tout au long du TP**, vous pratiquez les **outils de gestion de projet** (**C5 AC2**) : workflow branche → Pull Request → review, Conventional Commits, CI GitHub Actions. Les AC officiels R2.03 sont C1 AC2 (conception simple), C1 AC3 (essais et évaluation), C4 AC2 (visualisation de données / traces), C5 AC2 (outils de gestion de projet).
+**Tout au long du TP** vous développez un réflexe professionnel essentiel : <b>ne pas casser ce qui marche</b>. La discipline "rouge = je ne commit pas, vert = je commit souvent" vous suit partout.
 
 ### Pourquoi cette démarche ?
 
-Ce TP utilise le **TDD (Test-Driven Development) en baby steps** : les tests sont livrés désactivés (`@Disabled`) et vous les activez un par un, comme un cahier des charges dont on implémente les exigences une à une. Ce n'est pas un artifice pédagogique -c'est une **méthode de développement professionnel** (formalisée par Kent Beck dans l'Extreme Programming) utilisée dans l'industrie logicielle.
+**Refactorer, c'est transformer du code sans changer son comportement.** Ce n'est pas "ajouter une fonctionnalité", ce n'est pas "corriger un bug" : c'est améliorer la <b>lisibilité</b>, la <b>maintenabilité</b>, la <b>structure</b> d'un code qui fonctionne déjà. Martin Fowler a codifié ce geste professionnel dans son livre <em>Refactoring</em> (1999, 2e éd. 2018) : il y catalogue <b>30+ refactorings</b> de base, chacun étant une transformation déterministe qui préserve le comportement.
 
-Le workflow Git que vous pratiquerez -créer une branche par exercice, pousser, ouvrir une Pull Request, recevoir une review automatique de Copilot, puis merger -reproduit le **cycle de travail en entreprise**. L'objectif est d'apprendre à collaborer avec des outils, pas seulement à écrire du code.
+Pour refactorer en sécurité, il faut un <b>filet de tests</b>. C'est exactement ce que vous apportent les <em>tests de caractérisation</em> : des tests qui décrivent le comportement actuel du code (qu'il soit "juste" ou non), et qui vous alertent dès qu'un refactoring l'a modifié par accident. Une bonne couverture de tests, c'est la différence entre un refactoring et un bug.
 
-Copilot Chat est configuré dans ce projet comme un **tuteur** : il ne donnera pas la solution d'emblée. Il commence par expliquer le concept, puis oriente vers la documentation, et ne propose du code qu'en dernier recours. L'objectif est que vous compreniez chaque ligne de code que vous écrivez.
+Dans ce TP, chaque exercice vous donne :
 
-### Lien avec la SAE
+1. Un <b>code smelly</b> mais fonctionnel
+2. Une <b>suite de tests de caractérisation</b> (active, verte) qui pin le comportement
+3. Un ou plusieurs <b>tests de structure</b> (désactivés) qui valident que vous avez bien appliqué le bon refactoring
 
-<!-- TODO : adapter le paragraphe au TP. Expliquer quelles compétences
-     de CE TP seront réutilisées dans la SAE du semestre. -->
+Votre mission : appliquer le(s) refactoring(s) demandés dans le README <b>en gardant tous les tests verts</b>. Les tests de structure s'activent au fur et à mesure pour valider que vous avez bien extrait les bonnes méthodes, les bonnes constantes, les bonnes classes.
 
-Code smells, refactorings de Fowler, characterization tests et kata Gilded Rose
+> [!TIP]
+> La règle d'or du refactoring : <b>un petit pas, un test, un commit</b>. Ne faites jamais 10 transformations en même temps ; vous perdrez le fil et un bug se glissera. Faites-en une, vérifiez que tout est vert, commitez, puis seulement passez à la suivante.
+
+Copilot Chat reste votre <b>tuteur</b> pour ce TP : il vous aidera à identifier les smells, vous suggérera le refactoring approprié, et vous guidera étape par étape sans vous donner directement le code refactoré.
+
+### Lien avec la suite du module et la SAE
+
+Ce TP est le dernier contact pédagogique avant l'examen **CC3** (mini-kata TDD sur feuille, 2 h, commun avec R2.02). Les trois semaines qui vous séparent de l'examen sont occupées par la **SAE 2.01** (développement d'une application).
+
+Dans la SAE, vous allez régulièrement devoir :
+- **Ajouter une fonctionnalité** dans du code qu'un coéquipier a écrit - pas toujours propre
+- **Corriger un bug** dans ce code - sans casser le reste
+- **Nettoyer** quand la date limite le permet
+
+C'est exactement ce que ce TP vous apprend à faire en sécurité. Le jour de l'examen, vous saurez pourquoi tel test doit être écrit avant tel autre, pourquoi une méthode extraite vaut mieux qu'un commentaire.
 
 ### Prérequis
 
 #### Connaissances attendues
 
-<!-- TODO : adapter au TP. Pour le TP2 TDD : bases POO Java (R2.01), Git (TP1 de ce module).
-     Pour TP3 Kata / TP4 Refactoring : ajouter TP2 TDD comme prérequis. -->
-
-- **Bases de la programmation** : variables, types, structures de contrôle, tableaux -acquis en C++ dans la ressource R1.01
-- **Programmation orientée objet en Java** : classes, objets, héritage, interfaces, polymorphisme -acquis dans la ressource R2.01
-- **Bases de Git** : clone, commit, push, pull, branche -vus dans le TP1 de ce module
+- **Programmation orientée objet en Java** : classes, héritage, classes abstraites, polymorphisme (R2.01) - le TP4 utilise beaucoup l'héritage
+- **Collections Java** : `List`, `Map`, `Comparator` (R2.01)
+- **Git avancé** : branche par exercice, Pull Request, review, Conventional Commits (TP1)
+- **Cycle TDD** : RED-GREEN-REFACTOR, baby steps (TP2 et TP3)
 
 #### Environnement technique
 
@@ -277,9 +290,126 @@ Le TP est découpé en plusieurs **exercices** à faire dans l'ordre. Chaque exe
      ### Workflow de développement
      ============================================================ -->
 
-### Exercice 1
+## Protocole de refactoring à appliquer à chaque exercice
 
-À compléter...
+1. **Lire le code** en entier, sans toucher. Identifier les smells à l'œil.
+2. **Lancer les tests** (`./mvnw test -Dtest='MonTest'`). Ils doivent tous être verts - c'est votre filet de sécurité.
+3. **Créer une branche** : `git checkout -b exoN-refactoring`.
+4. **Appliquer un refactoring à la fois**. Après chaque : relancer les tests. Si vert, commit. Si rouge, reculer et comprendre.
+5. **Activer les tests de structure** un par un, au fur et à mesure de vos transformations. Ils s'activent en retirant `@Disabled`.
+6. Quand tous les tests sont verts : **pousser et ouvrir une PR**.
+
+> [!IMPORTANT]
+> **Ne désactivez jamais un test de caractérisation**. Si un test de caractérisation casse pendant votre refactoring, c'est que vous avez changé le comportement - par définition, ce n'est plus un refactoring, c'est un bug. Annulez votre dernière modification et comprenez ce qui s'est passé.
+
+---
+
+## Exercice 1 - Facture (★★) - Long Method + Magic Numbers
+
+### Smells à corriger
+
+Ouvrez `Facture.java` et observez. Vous verrez :
+
+- **Long Method** : `calculerTotal()` fait trois choses (somme HT, TVA, remise) en une méthode de 10 lignes. Les commentaires décrivent chaque étape - c'est un bon signe que chaque étape mérite son propre nom de méthode.
+- **Magic Number** : les valeurs `1.20`, `100`, `0.9` sont codées en dur. Elles sont expliquées par les commentaires, mais un commentaire est une documentation qui <em>ne sera pas</em> relue systématiquement.
+
+### Refactorings à appliquer
+
+1. **Replace Magic Number with Symbolic Constant** : extraire trois `private static final double` avec des noms parlants (`TAUX_TVA`, `SEUIL_REMISE`, `TAUX_REMISE`).
+2. **Extract Method** : extraire trois méthodes privées `sommeHT`, `appliquerTVA`, `appliquerRemise`. Après refactoring, `calculerTotal` doit se réduire à une composition de trois appels.
+
+### Tests (5 caractérisation + 5 structure)
+
+Les 5 tests de caractérisation sont actifs dès le début - ils passent sur le code smelly et doivent rester verts. Les 5 tests de structure sont `@Disabled` ; activez-les au fur et à mesure :
+
+1. `constantesSymboliquesExtraites` - après l'extraction des constantes
+2. `methodeSommeHTExtraite` - après la première extraction de méthode
+3. `methodeAppliquerTVAExtraite` - après la deuxième extraction
+4. `methodeAppliquerRemiseExtraite` - après la troisième extraction
+5. `methodeCalculerTotalCourte` - quand `calculerTotal` est réduit à sa composition finale
+
+---
+
+## Exercice 2 - Animal (★★★) - Replace Conditional with Polymorphism
+
+### Smells à corriger
+
+`Animal.faireDuBruit()` est un gros `switch` sur un champ `type:String`. C'est le **Type Code** classique : un champ qui encode la nature de l'objet, exploité par des `switch` éparpillés dans le code. Chaque nouvelle espèce impose de toucher ce switch ; chaque oubli est un bug silencieux.
+
+### Refactoring à appliquer
+
+**Replace Conditional with Polymorphism**. Transformer `Animal` en classe abstraite. Créer `Chien`, `Chat`, `Vache`, `Canard` qui héritent de `Animal` et redéfinissent `faireDuBruit()`. Le `switch` disparaît, remplacé par le dispatch JVM.
+
+Pour conserver la compatibilité avec les appelants existants qui font `new Animal("Rex", "chien")`, introduisez une méthode statique de fabrique : `Animal.creer(String type, String nom)` qui retourne la bonne sous-classe.
+
+### Tests (5 caractérisation + 5 structure)
+
+Structure à activer progressivement :
+
+1. `animalEstAbstract` - après avoir rendu `Animal` abstract
+2. `classeChienHeriteDAnimal` - après avoir créé `Chien`
+3. `toutesLesEspecesOntLeurClasse` - après avoir créé `Chat`, `Vache`, `Canard`
+4. `champTypeStringSupprime` - après avoir retiré le champ `type:String` d'Animal
+5. `fabriqueCreeLaBonneEspece` - après avoir ajouté la méthode statique `Animal.creer(...)`
+
+---
+
+## Exercice 3 - ServiceNotification (★★) - Introduce Parameter Object
+
+### Smell à corriger
+
+`ServiceNotification.envoyer(String, String, String, String, boolean, int, String[])` a **7 paramètres**. L'appel est illisible (on ne sait pas ce que vaut le `boolean`), et ajouter un 8e paramètre (ex: `replyTo`) imposerait de modifier tous les appelants. Les 7 paramètres forment un groupe cohérent : ils décrivent un même <em>message email</em>.
+
+### Refactoring à appliquer
+
+**Introduce Parameter Object**. Créer un record `MessageEmail(String destinataire, String expediteur, String sujet, String corps, boolean important, int priorite, String[] piecesJointes)`. Créer une nouvelle méthode `envoyer(MessageEmail message)` qui délègue à l'ancienne (pour conserver la compatibilité, temporairement). Une fois la nouvelle méthode utilisée partout, on peut supprimer l'ancienne.
+
+### Tests (4 caractérisation + 4 structure)
+
+Structure à activer progressivement :
+
+1. `messageEmailEstUnRecord` - après avoir créé la classe `MessageEmail` comme record
+2. `messageEmailA7Composants` - après avoir ajouté les 7 composants (destinataire, expéditeur, sujet, corps, important, priorité, piècesJointes)
+3. `nouvelleSignatureAvecMessageEmail` - après avoir créé la méthode `envoyer(MessageEmail)`
+4. `nouvelleMethodeProduitLeMemeFormat` - quand la nouvelle méthode produit la même sortie que l'ancienne
+
+---
+
+## Exercice 4 - Gilded Rose (★★★★★) - Capstone
+
+### Contexte (le kata original d'Emily Bache)
+
+Vous venez d'être embauché·e à la Gilded Rose, une auberge achetant et revendant des articles magiques. Le responsable vous demande deux choses :
+
+1. **Ajouter le support des articles "Conjured"** qui se dégradent deux fois plus vite que les articles normaux.
+2. Mais <b>avant</b>, il demande que vous nettoyiez le code de `updateQuality()`. Parce qu'actuellement personne n'ose y toucher - et le dernier stagiaire qui a essayé a introduit trois bugs.
+
+### Règles métier (à préserver absolument)
+
+Voir la Javadoc de `GildedRose.java` pour la liste complète. Résumé :
+
+- Articles normaux : qualité baisse de 1 par jour, de 2 après la date limite
+- Aged Brie : qualité <em>augmente</em> avec le temps
+- Sulfuras : jamais vendu, jamais dégradé
+- Backstage passes : augmente de 1, puis 2 à partir de 10 jours, puis 3 à 5 jours, tombe à 0 après le concert
+- Quality jamais &gt; 50 (sauf Sulfuras à 80), jamais &lt; 0
+
+### Contrainte
+
+La classe `Item` ne peut **pas** être modifiée (signature figée par la direction). Vous pouvez créer d'autres classes autour.
+
+### Travail à faire
+
+1. **Comprendre** le code existant. Lancez les tests de caractérisation (13 tests actifs) pour voir les règles en action.
+2. **Refactorer** `updateQuality()`. Plusieurs stratégies possibles :
+   - Extraire une méthode par type d'article (`updateNormal()`, `updateBrie()`, etc.)
+   - Créer une classe par type (`UpdaterBrie`, `UpdaterBackstage`, ...) avec un `Updater` abstrait
+   - Utiliser un dispatch via `Map<String, Updater>`
+3. **Ajouter** le support des "Conjured" : trois tests (`conjured_*`) sont `@Disabled`, activez-les après votre refactoring. Un article dont le nom commence par `"Conjured"` doit se dégrader deux fois plus vite qu'un article normal.
+
+### Règle d'or
+
+**Gardez les 13 tests de caractérisation verts à chaque étape.** Si un test casse, revenez en arrière. Commit après chaque refactoring vert. Après votre refactoring, l'ajout du Conjured doit tenir en quelques lignes.
 
 ---
 
