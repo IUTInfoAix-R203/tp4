@@ -1,0 +1,57 @@
+# Régénère la branche main (version étudiante) à chaque push sur solution.
+#
+# La branche solution contient les implémentations complètes avec des
+# marqueurs // --solution-- ... // --end-solution--. Ce workflow :
+#   1. Appelle generate-student.sh pour produire la version étudiante
+#   2. Crée un commit orphelin à partir du résultat
+#   3. Pousse ce commit sur main
+#
+# main est un artefact purement dérivé : aucun commit manuel ne doit
+# y être fait (ils seraient écrasés au prochain push sur solution).
+
+name: Generate student version
+
+on:
+  push:
+    branches: [solution]
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.repository != 'IUTInfoAix-R203/template-tp-java'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout TP (all branches)
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'zulu'
+          cache: maven
+          check-latest: false
+
+      - name: Generate student version
+        run: |
+          chmod +x ./generate-student.sh
+          ./generate-student.sh --apply .
+
+      - name: Publish to main (orphan, force-push)
+        run: |
+          SOLUTION_SHA=$(git rev-parse solution)
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Créer une branche orpheline (sans historique)
+          git checkout --orphan main-generated
+          git add -A
+          git commit -m "Version étudiante générée depuis solution@${SOLUTION_SHA}"
+
+          # Force-push sur main (écrase tout l'historique)
+          git push origin main-generated:main --force
