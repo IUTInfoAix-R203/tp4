@@ -24,9 +24,9 @@
 set -e
 
 # Protection : bloquer les commits sur main dans les repos ENSEIGNANT uniquement.
-# Dans le repo enseignant (IUTInfoAix-R202), la branche main est dérivée de
+# Dans le repo enseignant (IUTInfoAix-R203), la branche main est dérivée de
 # solution et régénérée par la CI. Un commit manuel serait écrasé.
-# Dans les repos ÉTUDIANTS (IUTInfoAix-R202-2026), main est la seule branche
+# Dans les repos ÉTUDIANTS (IUTInfoAix-R203-2026), main est la seule branche
 # et les étudiants doivent pouvoir y commiter normalement.
 # Détection : si la branche "solution" existe localement, c'est un repo enseignant.
 # Bypass : ALLOW_MAIN_COMMIT=1 git commit ... (utilisé par generate-student.sh)
@@ -41,7 +41,7 @@ if [ "$BRANCH" = "main" ] && [ "$HAS_SOLUTION" = "yes" ] && [ "$ALLOW_MAIN_COMMI
   echo "  écrasé au prochain push."
   echo ""
   echo "  → Pour travailler : git checkout solution"
-  echo "  → Pour générer main : cd ../template-tp-javafx && ./generate-student.sh --apply ../\$(basename \"\$PWD\")"
+  echo "  → Pour générer main : cd ../template-tp-java && ./generate-student.sh --apply ../\$(basename \"\$PWD\")"
   echo ""
   exit 1
 fi
