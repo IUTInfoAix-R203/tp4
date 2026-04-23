@@ -277,6 +277,10 @@ if [ "$APPLY" = true ]; then
     rsync -a --delete \
         --exclude='.git' \
         --exclude='target' \
+        --exclude='generate-student.sh' \
+        --exclude='update-autograding.sh' \
+        --exclude='.github/workflows/generate-student.yml' \
+        --exclude='.github/workflows/template-sync.yml' \
         "$TMP_DIR/" "$TP_DIR/"
 
     ok "Version étudiante générée dans $TP_DIR/"
@@ -295,6 +299,10 @@ else
     if command -v diff >/dev/null 2>&1; then
         DIFF_OUTPUT=$(diff -rq \
             --exclude='.git' --exclude='target' \
+            --exclude='generate-student.sh' \
+            --exclude='update-autograding.sh' \
+            --exclude='generate-student.yml' \
+            --exclude='template-sync.yml' \
             "$TMP_DIR" "$TP_DIR" 2>/dev/null || true)
         DIFF_COUNT=$(echo "$DIFF_OUTPUT" | grep -c '.' || true)
         echo "$DIFF_COUNT fichier(s) différent(s) entre solution strippée et main actuel."
