@@ -199,11 +199,10 @@ git -C "$TP_DIR" archive solution | tar -C "$TMP_DIR" -x
 # Si au moins une source ou test contient un bloc /* --student-- ...
 # --end-student-- */, on bascule en mode refactoring : smelly et refactored
 # cohabitent dans la meme source, l'auto-@Disabled est skippe (les tests
-# de caracterisation doivent rester actifs cote etudiant).
+# de caracterisation doivent rester actifs cote etudiant). La detection
+# scanne tout src/, y compris le launcher App.java.
 REFACTORING_MODE=false
-if find "$TMP_DIR/src" \
-        \( -path '*/exercice*/*.java' -o -path '*/bonus*/*.java' \) \
-        -print0 2>/dev/null \
+if find "$TMP_DIR/src" -name '*.java' -print0 2>/dev/null \
     | xargs -0 grep -l '/\* --student--' 2>/dev/null | grep -q .; then
     REFACTORING_MODE=true
     info "Mode refactoring detecte (bloc /* --student-- */ present)"
@@ -222,7 +221,7 @@ while IFS= read -r -d '' file; do
         rm -f "$file"
         DELETED=$((DELETED + 1))
     fi
-done < <(find "$TMP_DIR/src" \( -path '*/exercice*/*.java' -o -path '*/bonus*/*.java' \) -print0 2>/dev/null)
+done < <(find "$TMP_DIR/src" -name '*.java' -print0 2>/dev/null)
 ok "$DELETED fichier(s) entier(s) supprime(s)"
 
 # --- 1b. Strip des blocs solution (source) ---
@@ -235,7 +234,7 @@ while IFS= read -r -d '' file; do
         STRIPPED=$((STRIPPED + 1))
         echo "  stripped: ${file#"$TMP_DIR"/}"
     fi
-done < <(find "$TMP_DIR/src/main/java" \( -path '*/exercice*/*.java' -o -path '*/bonus*/*.java' \) -print0 2>/dev/null)
+done < <(find "$TMP_DIR/src" -name '*.java' -print0 2>/dev/null)
 
 ok "$STRIPPED fichier(s) source strippe(s)"
 
@@ -253,7 +252,7 @@ if [ "$REFACTORING_MODE" = "true" ]; then
             UNCOMMENTED=$((UNCOMMENTED + 1))
             echo "  uncommented: ${file#"$TMP_DIR"/}"
         fi
-    done < <(find "$TMP_DIR/src" \( -path '*/exercice*/*.java' -o -path '*/bonus*/*.java' \) -print0 2>/dev/null)
+    done < <(find "$TMP_DIR/src" -name '*.java' -print0 2>/dev/null)
     ok "$UNCOMMENTED fichier(s) source decommente(s)"
 fi
 
