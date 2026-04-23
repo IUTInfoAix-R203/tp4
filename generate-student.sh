@@ -6,7 +6,7 @@
 # La branche "solution" contient les implémentations complètes
 # avec des marqueurs :
 #   // --solution--
-#   code à supprimer…
+#   code à supprimer...
 #   // --end-solution--
 #
 # Le script :
@@ -192,11 +192,11 @@ cleanup() {
 }
 trap cleanup EXIT
 
-info "Extraction de la branche solution…"
+info "Extraction de la branche solution..."
 git -C "$TP_DIR" archive solution | tar -C "$TMP_DIR" -x
 
 # --- 1. Strip des blocs solution (source) ---
-info "Suppression des blocs // --solution-- … // --end-solution--"
+info "Suppression des blocs // --solution-- ... // --end-solution--"
 
 STRIPPED=0
 while IFS= read -r -d '' file; do
@@ -210,7 +210,7 @@ done < <(find "$TMP_DIR/src/main/java" \( -path '*/exercice*/*.java' -o -path '*
 ok "$STRIPPED fichier(s) source strippé(s)"
 
 # --- 2. Ajout de @Disabled aux tests ---
-info "Ajout de @Disabled aux tests des exercices…"
+info "Ajout de @Disabled aux tests des exercices..."
 
 DISABLED_COUNT=0
 while IFS= read -r -d '' file; do
@@ -226,7 +226,7 @@ done < <(find "$TMP_DIR/src/test/java" \( -path '*/exercice*/*.java' -o -path '*
 ok "$DISABLED_COUNT annotation(s) @Disabled ajoutée(s)"
 
 # --- 3. Spotless (supprime imports inutilisés, reformate) ---
-info "Exécution de Spotless (formatage + nettoyage imports)…"
+info "Exécution de Spotless (formatage + nettoyage imports)..."
 
 if [ -f "$TMP_DIR/mvnw" ]; then
     chmod +x "$TMP_DIR/mvnw" 2>/dev/null || true
@@ -241,7 +241,7 @@ git -C "$TMP_DIR" init -q 2>/dev/null || true
 ok "Spotless terminé"
 
 # --- 4. Vérification compilation ---
-info "Vérification de la compilation…"
+info "Vérification de la compilation..."
 
 (cd "$TMP_DIR" && ./mvnw -B -q compile 2>&1) \
     || {
@@ -252,7 +252,7 @@ info "Vérification de la compilation…"
 ok "Compilation réussie"
 
 # --- 5. Vérification rapide : tests skipped ---
-info "Vérification que les tests sont bien @Disabled…"
+info "Vérification que les tests sont bien @Disabled..."
 
 TEST_OUTPUT=$(cd "$TMP_DIR" && ./mvnw -B -q test 2>&1 || true)
 SKIPPED=$(echo "$TEST_OUTPUT" | grep -oP 'Skipped: \K[0-9]+' | tail -1 || true)
@@ -266,11 +266,11 @@ fi
 
 # --- 6. Application ou dry-run ---
 if [ "$APPLY" = true ]; then
-    info "Application des modifications sur $TP_DIR…"
+    info "Application des modifications sur $TP_DIR..."
 
     CURRENT_BRANCH=$(git -C "$TP_DIR" branch --show-current)
     if [ "$CURRENT_BRANCH" != "main" ]; then
-        info "Basculement sur la branche main…"
+        info "Basculement sur la branche main..."
         checkout_main_branch
     fi
 

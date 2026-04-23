@@ -62,7 +62,7 @@
         </dependency>
 
         <!-- ApprovalTests : utile pour les kata à entrée/sortie textuelle (Minesweeper,
-             Yahtzee, Gilded Rose…). Permet de versionner une sortie attendue
+             Yahtzee, Gilded Rose...). Permet de versionner une sortie attendue
              et de la comparer au résultat du code. -->
         <dependency>
             <groupId>com.approvaltests</groupId>

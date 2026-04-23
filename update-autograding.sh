@@ -4,7 +4,7 @@
 # en scannant les paquets d'exercices dans src/test/java/fr/univ_amu/iut/
 #
 # Utilise les actions GitHub Classroom modernes (forkées et maintenues
-# côté R202, réutilisées par R203 — infrastructure partagée) :
+# côté R202, réutilisées par R203 - infrastructure partagée) :
 #   - IUTInfoAix-R202/autograding-command-grader@main
 #   - IUTInfoAix-R202/autograding-grading-reporter@main
 #

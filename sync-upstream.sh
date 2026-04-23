@@ -26,7 +26,7 @@ UPSTREAM="https://github.com/IUTInfoAix-R203/${TP_NAME}.git"
 # Stash automatique si le working tree est dirty
 STASHED=false
 if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
-    echo "Modifications locales détectées — stash automatique..."
+    echo "Modifications locales détectées - stash automatique..."
     git stash push -m "sync-upstream: sauvegarde avant mise à jour"
     STASHED=true
 fi

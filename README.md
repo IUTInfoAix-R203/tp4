@@ -1,6 +1,6 @@
 # <img src="https://raw.githubusercontent.com/IUTInfoAix-R510/Syllabus/main/assets/logo.png" alt="class logo" class="logo"/> R2.03 - Qualité de développement
 
-### IUT d’Aix-Marseille – Département Informatique Aix-en-Provence
+### IUT d'Aix-Marseille - Département Informatique Aix-en-Provence
 
 * **Ressource:** [R2.03](https://cache.media.enseignementsup-recherche.gouv.fr/file/SPE4-MESRI-17-6-2021/35/5/Annexe_17_INFO_BUT_annee_1_1411355.pdf)
 
@@ -31,7 +31,7 @@
 
 Les exercices de ce TP sont organisés en progression. Cette progression suit la **taxonomie de Bloom**, un modèle pédagogique qui décrit les niveaux de maîtrise d'un savoir-faire -du plus simple (comprendre un concept) au plus complexe (créer une application complète).
 
-| Niveau Bloom | Exercices | Vous serez capable de… | Compétence BUT |
+| Niveau Bloom | Exercices | Vous serez capable de... | Compétence BUT |
 |---|---|---|---|
 | **Comprendre** | 1 et 2 | Identifier les <b>code smells</b> classiques (Long Method, Magic Number, Switch Statement, Long Parameter List) et nommer le refactoring qui les corrige | C1 AC2 |
 | **Appliquer** | 1, 2 et 3 | Appliquer <b>Replace Magic Number</b>, <b>Extract Method</b>, <b>Replace Conditional with Polymorphism</b> et <b>Introduce Parameter Object</b> en gardant les tests verts à chaque étape | C1 AC2, C1 AC3 |
