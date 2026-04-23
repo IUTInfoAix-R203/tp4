@@ -23,6 +23,61 @@
 
 set -e
 
+# Protection : bloquer les commits sur main dans les repos ENSEIGNANT uniquement.
+# Dans le repo enseignant (IUTInfoAix-R203), la branche main est dérivée de
+# solution et régénérée par la CI. Un commit manuel serait écrasé.
+# Dans les repos ÉTUDIANTS (IUTInfoAix-R203-2026), main est la seule branche
+# et les étudiants doivent pouvoir y commiter normalement.
+# Détection : si la branche "solution" existe localement, c'est un repo enseignant.
+# Bypass : ALLOW_MAIN_COMMIT=1 git commit ... (utilisé par generate-student.sh)
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+HAS_SOLUTION=$(git rev-parse --verify solution 2>/dev/null && echo "yes" || true)
+if [ "$BRANCH" = "main" ] && [ "$HAS_SOLUTION" = "yes" ] && [ "$ALLOW_MAIN_COMMIT" != "1" ]; then
+  echo ""
+  echo "  ⛔  Commit bloqué : vous êtes sur la branche 'main' du repo enseignant."
+  echo ""
+  echo "  La branche main est la version étudiante, régénérée automatiquement"
+  echo "  par la CI à chaque push sur 'solution'. Un commit manuel ici serait"
+  echo "  écrasé au prochain push."
+  echo ""
+  echo "  → Pour travailler : git checkout solution"
+  echo "  → Pour générer main : cd ../template-tp-java && ./generate-student.sh --apply ../\$(basename \"\$PWD\")"
+  echo ""
+  exit 1
+fi
+
+# @@@TEACHER-LINT-BEGIN@@@
+# Linters enseignant : tournent uniquement sur la branche 'solution'
+# du repo enseignant. Strippés automatiquement par generate-student.sh
+# lors de la régénération de la version étudiante, donc invisibles
+# côté étudiant.
+#
+# Ils couvrent deux familles de défauts identifiés pendant la session
+# du 2026-04-23 sur tp4 : incohérences documentaires (README qui ment
+# sur la réalité du code) et code smells côté solution (Long Method,
+# Magic Number, Long Parameter List, etc. qu'on enseigne à éviter).
+#
+# Bypass d'urgence : SKIP_LINT=1 git commit ...
+if [ "$BRANCH" = "solution" ] && [ "$HAS_SOLUTION" = "yes" ] && [ "${SKIP_LINT:-}" != "1" ]; then
+  if [ -x scripts/lint-doc-coherence.sh ]; then
+    if ! ./scripts/lint-doc-coherence.sh; then
+      echo ""
+      echo "  ⛔  Commit bloqué : incohérence documentaire détectée."
+      echo "  → Corrige les points ci-dessus, ou bypass avec SKIP_LINT=1 git commit ..."
+      echo ""
+      exit 1
+    fi
+  fi
+
+  if ! ./mvnw -q -Pquality-gate -DskipTests pmd:check 2>/dev/null; then
+    echo ""
+    echo "  ⛔  Commit bloqué : PMD a trouvé des code smells dans la solution."
+    echo "  → Lance './mvnw pmd:check' pour voir le détail, ou bypass avec SKIP_LINT=1 git commit ..."
+    echo ""
+    exit 1
+  fi
+fi
+# @@@TEACHER-LINT-END@@@
 
 # Liste des fichiers Java staged (Added / Copied / Modified)
 STAGED_JAVA=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.java$' || true)

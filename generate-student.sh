@@ -343,16 +343,28 @@ if [ "$APPLY" = true ]; then
           "$TP_DIR/.github/workflows/generate-student.yml" \
           "$TP_DIR/.github/workflows/template-sync.yml"
 
-    # Le hook pre-commit contient un bloc "Protection main" qui n'est
-    # utile que cote enseignant (detection de la branche solution). Sur
-    # le repo etudiant il ne se declenche jamais et fait une fuite de
-    # contexte (mention de generate-student.sh, de ../template-tp-java).
-    # On le strip lors de la generation etudiante : du commentaire
-    # "# Protection :" jusqu'au "fi" qui ferme le bloc.
+    # Le hook pre-commit contient deux blocs enseignant qui n'ont aucun
+    # sens cote etudiant :
+    #   1. "Protection main" : detection branche solution, cree une fuite
+    #      de contexte (mention de generate-student.sh, ../template-tp-java)
+    #   2. "@@@TEACHER-LINT-BEGIN@@@ ... @@@TEACHER-LINT-END@@@" : appels
+    #      aux linters enseignant (lint-doc-coherence.sh et PMD gate).
+    # On strip les deux lors de la generation etudiante.
     if [ -f "$TP_DIR/.githooks/pre-commit" ]; then
         sed -i '/^# Protection : bloquer les commits sur main/,/^fi$/d' \
             "$TP_DIR/.githooks/pre-commit"
+        sed -i '/@@@TEACHER-LINT-BEGIN@@@/,/@@@TEACHER-LINT-END@@@/d' \
+            "$TP_DIR/.githooks/pre-commit"
     fi
+
+    # Le script scripts/lint-doc-coherence.sh est un outil enseignant ;
+    # pas d'utilite cote etudiant.
+    rm -rf "$TP_DIR/scripts"
+
+    # Le workflow .github/workflows/lint.yml est le gate strict cote
+    # branche solution uniquement. Son chemin serait inutile cote main
+    # etudiant meme si le filtre sur `on:` aurait suffi.
+    rm -f "$TP_DIR/.github/workflows/lint.yml"
 
     ok "Version étudiante générée dans $TP_DIR/"
     echo ""

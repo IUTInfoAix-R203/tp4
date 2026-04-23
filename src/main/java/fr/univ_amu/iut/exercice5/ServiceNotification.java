@@ -26,6 +26,13 @@ public class ServiceNotification {
    *
    * @return la représentation textuelle du mail envoyé, pour vérification en test
    */
+  // --solution--
+  // Delegate backward-compat : on garde la signature a 7 parametres pour ne pas
+  // casser les appelants, mais on supprime explicitement le warning PMD car le
+  // code metier a migre vers MessageEmail (ci-dessous). Sur la branche etudiante,
+  // ce @SuppressWarnings n'apparait pas : PMD signale donc bien le smell.
+  @SuppressWarnings("PMD.ExcessiveParameterList")
+  // --end-solution--
   public String envoyer(
       String destinataire,
       String expediteur,

@@ -29,6 +29,7 @@
         <spotless.maven.plugin.version>3.4.0</spotless.maven.plugin.version>
         <google.java.format.version>1.35.0</google.java.format.version>
         <git.build.hook.plugin.version>3.6.0</git.build.hook.plugin.version>
+        <maven.pmd.plugin.version>3.28.0</maven.pmd.plugin.version>
 
         <!-- Test dependencies versions -->
         <junit.jupiter.version>6.0.3</junit.jupiter.version>
@@ -179,6 +180,66 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- PMD : linter de code smells aligné sur les refactorings
+                 enseignés (Long Method, Magic Number, Long Parameter
+                 List, God Class, etc.). Ruleset pédagogique dans
+                 pmd-ruleset.xml à la racine du TP.
+
+                 Par défaut : failOnViolation=false (warning only). Les
+                 warnings PMD servent de checklist des smells à
+                 refactorer. Les étudiants peuvent lancer :
+                   ./mvnw pmd:check    # rapport console
+                   ./mvnw pmd:pmd      # rapport HTML target/site/pmd.html
+
+                 Côté enseignant : le profil -Pquality-gate active
+                 failOnViolation=true et bloque tout commit ou CI sur
+                 une solution qui laisse passer un smell. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>${maven.pmd.plugin.version}</version>
+                <configuration>
+                    <rulesets>
+                        <ruleset>${project.basedir}/pmd-ruleset.xml</ruleset>
+                    </rulesets>
+                    <printFailingErrors>true</printFailingErrors>
+                    <failOnViolation>false</failOnViolation>
+                    <linkXRef>false</linkXRef>
+                    <targetJdk>25</targetJdk>
+                    <includeTests>false</includeTests>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>pmd-check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Profil enseignant / CI branche solution : PMD bloque sur
+             violation. Activé manuellement via ./mvnw -Pquality-gate
+             ou automatiquement par .githooks/pre-commit (teacher-block)
+             et par .github/workflows/lint.yml. -->
+        <profile>
+            <id>quality-gate</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-pmd-plugin</artifactId>
+                        <configuration>
+                            <failOnViolation>true</failOnViolation>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

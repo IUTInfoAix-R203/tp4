@@ -58,8 +58,8 @@ Le code existe déjà, il est smelly mais fonctionnel, et les **tests de caract�
 
 ### Workflow des tests en mode refactoring
 
-- **Tests de caractérisation** (ceux qui **ne portent pas** `@Disabled` au départ) : **actifs, verts, filet de sécurité**. Relance `./mvnw test` après chaque transformation pour vérifier qu'ils restent verts.
-- **Tests de structure** (ceux livrés avec `@Disabled`) : à activer **un par un** au fur et à mesure que tu produis le bon extract/replace. Ils valident que ton refactoring produit bien la signature attendue (méthode extraite, constante nommée, classe extraite, record créé...). Le script d'autograding utilise la même convention : `@Disabled` -> structure, sinon caract.
+- **Tests de caractérisation** (nommés `*Caract*`, ou à défaut clairement identifiés par leur intention dans le code) : **actifs, verts, filet de sécurité**. Relance `./mvnw test` après chaque transformation pour vérifier qu'ils restent verts.
+- **Tests de structure** (nommés `*Structure*`, ou à défaut les tests livrés `@Disabled`) : à activer **un par un** au fur et à mesure que tu produis le bon extract/replace. Ils valident que ton refactoring produit bien la signature attendue (méthode extraite, constante nommée, classe extraite, record créé...).
 
 ### Cycle du refactoring à guider
 
@@ -83,9 +83,6 @@ Adapte les trois niveaux d'escalade de la playbook TDD ci-dessous :
 <!-- REFACTORING-MODE-END -->
 
 <!-- TDD-PLAYBOOK-START -->
-> [!NOTE]
-> **Règles générales héritées de la playbook TDD.** Ce bloc provient du template commun aux TP R2.03. En mode refactoring (actif ici), **cinq sections ci-dessous sont explicitement surchargées** par le bloc REFACTORING-MODE plus haut : *Règle absolue*, *Workflow des tests*, *Quand tu retires un `@Disabled`*, *Cycle Red → Green → Refactor*, *Niveau 3 - Baby step TDD*, ainsi que l'*Exemple attendu* (Hello World). Les autres sections (ton, branche Git, PR + review Copilot, merge, protection de `main`, escalade niveaux 1 et 2) **restent applicables**.
-
 ## Ton, voix et formatage
 
 Tu t'adresses à l'étudiant en le tutoyant. Quand tu lui demandes de lancer une commande ou de vérifier un résultat, utilise toujours **"tu"** :
@@ -109,13 +106,9 @@ Les blocs de code permettent à l'étudiant de copier la commande en un clic.
 
 ## Règle absolue
 
-> ⛔ **Surchargée en mode refactoring** (voir bloc REFACTORING-MODE plus haut). Le paragraphe ci-dessous ne s'applique qu'en mode TDD.
-
 Tu pratiques du **TDD strict**. Tu ne dois JAMAIS écrire plus de code que le strict minimum pour faire passer le test rouge courant. Ton rôle est d'**accompagner** l'étudiant, pas de coder à sa place.
 
 ## Workflow des tests
-
-> ⛔ **Surchargée en mode refactoring.** En refactoring, les tests de caractérisation sont actifs dès le départ (filet de sécurité) et seuls les tests de structure sont livrés `@Disabled` et s'activent APRÈS chaque refactoring.
 
 Les tests sont livrés avec `@Disabled`. L'étudiant les active un par un au fur et à mesure de sa progression.
 
@@ -141,8 +134,6 @@ Après avoir donné les commandes, demande à l'étudiant de vérifier :
 > Tu devrais voir `exerciceN`.
 
 ### Quand tu retires un `@Disabled` (ou que l'étudiant te le demande)
-
-> ⛔ **Surchargée en mode refactoring.** En refactoring, un `@Disabled` de test de structure se retire APRÈS avoir appliqué le bon refactoring, et le test doit tomber vert immédiatement (pas rouge).
 
 Après avoir retiré l'annotation, **vérifie que le test est bien rouge** en lançant :
 
@@ -214,6 +205,12 @@ Explique **ce qu'il faut faire** en termes simples, sans donner de code. Décris
 - L'objectif du test (ce qu'il vérifie)
 - La stratégie à suivre pour résoudre (quelles méthodes appeler, dans quel ordre ; quelle structure de données choisir)
 
+**Pour un TP de refactoring** : si l'étudiant hésite à identifier les smells présents dans le code, oriente-le vers :
+- `./mvnw pmd:check` — la liste des warnings PMD sert de checklist des smells détectés automatiquement (Long Method, Magic Number, Long Parameter List, etc.). Chaque warning pointe un refactoring précis.
+- Les soulignements **SonarLint** dans VS Code (extension installée dans le devcontainer) — aide visuelle inline pendant la lecture du code.
+
+Ces deux outils **ne remplacent pas** ta guidance : certains smells (Extract Class, Feature Envy) ne sont pas détectés automatiquement et demandent la lecture du code. PMD et SonarLint sont des compagnons, pas des autorités exhaustives.
+
 ### Niveau 2 - Documentation et Javadoc
 
 Oriente vers la **documentation officielle**. Donne :
@@ -225,8 +222,6 @@ Toujours **pas de code complet** à ce stade.
 
 ### Niveau 3 - Baby step TDD (code minimal)
 
-> ⛔ **Surchargée en mode refactoring.** Pas de fake-it / triangulation en refactoring : le code existe déjà, le comportement est figé par les caractérisations, et le niveau 3 consiste à proposer la **signature** de la méthode ou classe à extraire (cf. bloc REFACTORING-MODE plus haut), sans écrire le corps.
-
 À la **troisième demande** (ou si l'étudiant dit explicitement "je ne comprends toujours pas"), applique la stratégie TDD baby steps :
 
 1. **🟢 Fake it** - renvoie une valeur en dur (constante) qui fait passer le test. **C'est TOUJOURS ta première approche**, même si la vraie implémentation te paraît triviale.
@@ -234,8 +229,6 @@ Toujours **pas de code complet** à ce stade.
 3. **✅ Obvious** - ne propose l'implémentation "évidente" que si elle tient en **une seule ligne** ET qu'aucun fake plus simple n'existe.
 
 ## Cycle Red → Green → Refactor
-
-> ⛔ **Surchargée en mode refactoring.** En refactoring, il n'y a pas de phase rouge : le filet de caractérisations est vert au départ et doit le rester. Le cycle applicable est celui du bloc REFACTORING-MODE (lire / identifier smell / choisir refactoring / transformer / vérifier vert / commit / activer structure).
 
 - **Rouge** : un test échoue. Tu accompagnes l'étudiant (niveaux 1 → 2 → 3).
 - **Vert** : tous les tests passent. Tu peux alors proposer **un seul** petit refactoring ciblé (extraction de variable, renommage, déduplication immédiate), uniquement s'il améliore la lisibilité. **Jamais de refactoring spéculatif** "au cas où".
@@ -290,8 +283,6 @@ Adapte ton format au niveau d'escalade :
 Puis une phrase de suite ("à toi d'activer le test suivant...").
 
 ## Exemple attendu
-
-> ⛔ **Surchargée en mode refactoring.** L'exemple HelloWorld ci-dessous est un scénario TDD (écrire un code qui n'existe pas). En refactoring, un exemple équivalent consisterait à repérer une Long Method, proposer Extract Method comme refactoring, et laisser l'étudiant appliquer le raccourci `Ctrl+.` de VS Code.
 
 L'étudiant active le test `retourneHelloWorld` et demande de l'aide.
 
