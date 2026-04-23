@@ -26,9 +26,9 @@ Les exercices de ce TP sont organisés en progression. Cette progression suit la
 
 | Niveau Bloom | Exercices | Vous serez capable de... | Compétence BUT |
 |---|---|---|---|
-| **Comprendre** | 1 et 2 | Identifier les <b>code smells</b> classiques (Long Method, Magic Number, Switch Statement, Long Parameter List) et nommer le refactoring qui les corrige | C1 AC2 |
-| **Appliquer** | 1, 2 et 3 | Appliquer <b>Replace Magic Number</b>, <b>Extract Method</b>, <b>Replace Conditional with Polymorphism</b> et <b>Introduce Parameter Object</b> en gardant les tests verts à chaque étape | C1 AC2, C1 AC3 |
-| **Analyser / Créer** | 4 | Refactorer fearlessly un code legacy réel (Gilded Rose) en s'appuyant sur une couverture de tests de caractérisation que vous aurez complétée | C1 AC2, C1 AC3 |
+| **Comprendre** | 1 et 2 | Identifier les <b>code smells</b> classiques (Long Method, Magic Number, Switch Statement, Long Parameter List) et nommer le refactoring qui les corrige | AC11.02 |
+| **Appliquer** | 1, 2 et 3 | Appliquer <b>Replace Magic Number</b>, <b>Extract Method</b>, <b>Replace Conditional with Polymorphism</b> et <b>Introduce Parameter Object</b> en gardant les tests verts à chaque étape | AC11.02, AC11.03 |
+| **Analyser / Créer** | 4 | Refactorer fearlessly un code legacy réel (Gilded Rose) en s'appuyant sur une couverture de tests de caractérisation que vous aurez complétée | AC11.02, AC11.03 |
 
 **Tout au long du TP** vous développez un réflexe professionnel essentiel : <b>ne pas casser ce qui marche</b>. La discipline "rouge = je ne commit pas, vert = je commit souvent" vous suit partout.
 
