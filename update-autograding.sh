@@ -44,6 +44,19 @@ TEST_ROOT="src/test/java/fr/univ_amu/iut"
 CLASSROOM_YML=".github/workflows/classroom.yml"
 COMPILE_POINTS=100
 TOTAL_EXERCISE_POINTS=900
+
+# En mode refactoring (detecte automatiquement, voir plus bas) :
+#   - CARACT_POINTS : total des points repartis entre les tests de
+#     caracterisation (ceux qui passent DES LE DEBUT sur le code smelly).
+#   - STRUCTURE_POINTS : total des points repartis entre les tests de
+#     structure (ceux wrappes dans /* --student-- @Disabled --end-student-- */
+#     et qui ne passent qu'APRES le refactoring demande).
+# 100 + 800 = 900 (= TOTAL_EXERCISE_POINTS). Le 10/80 est un choix
+# pedagogique : les tests de caracterisation ne sont qu'un filet de
+# securite, 80% de la note vient du refactoring effectivement realise.
+CARACT_POINTS=100
+STRUCTURE_POINTS=800
+
 TIMEOUT_MINUTES=5
 TEST_PACKAGE_PREFIX="fr.univ_amu.iut"
 
@@ -80,6 +93,48 @@ extract_test_methods() {
     ' "$file" 2>/dev/null || true
 }
 
+# Helper : extrait les methodes @Test classifiees en "caract" ou "structure"
+# pour les TP de refactoring. Un test est STRUCTURE s'il a une annotation
+# @Disabled soit directement au-dessus, soit dans un bloc /* --student--
+# @Disabled --end-student-- */ (cote solution). Sinon il est CARACT.
+extract_test_methods_classified() {
+    local file=$1
+    awk '
+        /\/\* --student--/ {
+            in_student = 1
+            block_has_disabled = 0
+            next
+        }
+        /--end-student-- \*\// {
+            if (block_has_disabled) pending_disabled = 1
+            in_student = 0
+            next
+        }
+        in_student {
+            if (/@Disabled/) block_has_disabled = 1
+            next
+        }
+        /^[[:space:]]*@Disabled/ {
+            pending_disabled = 1
+            next
+        }
+        /@Test([^a-zA-Z0-9_]|$)/ { pending_test = 1; next }
+        pending_test && /void[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\(/ {
+            match($0, /void[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*/)
+            name = substr($0, RSTART, RLENGTH)
+            sub(/^void[[:space:]]+/, "", name)
+            classification = pending_disabled ? "structure" : "caract"
+            print name "|" classification
+            pending_test = 0
+            pending_disabled = 0
+            next
+        }
+        pending_test && /^[[:space:]]*$/ { next }
+        pending_test && /^[[:space:]]*@/ { next }
+        { pending_test = 0; pending_disabled = 0 }
+    ' "$file" 2>/dev/null || true
+}
+
 # --- Découverte des exercices ---
 exercises=()
 if [ -d "$TEST_ROOT" ]; then
@@ -91,6 +146,17 @@ fi
 num_ex=${#exercises[@]}
 echo "Exercices détectés : $num_ex"
 
+# --- Detection du mode refactoring ---
+# Si au moins une source de test contient un bloc /* --student-- ...
+# --end-student-- */, on bascule sur le schema 10/10/80 (compile / caract
+# / structure). Sinon on reste sur l'equi-repartition TDD classique.
+REFACTORING_MODE=false
+if find "$TEST_ROOT" -name '*.java' -print0 2>/dev/null \
+    | xargs -0 grep -l '/\* --student--' 2>/dev/null | grep -q .; then
+    REFACTORING_MODE=true
+    echo "Mode refactoring détecté : schéma 10/10/80"
+fi
+
 # --- Répartition des points entre exercices ---
 if [ "$num_ex" -eq 0 ]; then
     compile_points=1000
@@ -98,6 +164,43 @@ else
     compile_points=$COMPILE_POINTS
     ex_base=$(( TOTAL_EXERCISE_POINTS / num_ex ))
     ex_remainder=$(( TOTAL_EXERCISE_POINTS - ex_base * num_ex ))
+fi
+
+# --- En mode refactoring : pre-compte des tests par categorie ---
+if [ "$REFACTORING_MODE" = "true" ]; then
+    total_caract=0
+    total_structure=0
+    for ex_name in "${exercises[@]}"; do
+        ex_dir="$TEST_ROOT/$ex_name"
+        while IFS= read -r f; do
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                case "$line" in
+                    *\|caract) total_caract=$((total_caract + 1)) ;;
+                    *\|structure) total_structure=$((total_structure + 1)) ;;
+                esac
+            done < <(extract_test_methods_classified "$f")
+        done < <(find "$ex_dir" -type f -name '*.java' 2>/dev/null | sort)
+    done
+
+    if [ "$total_caract" -gt 0 ]; then
+        caract_base=$(( CARACT_POINTS / total_caract ))
+        caract_remainder=$(( CARACT_POINTS - caract_base * total_caract ))
+    else
+        caract_base=0
+        caract_remainder=0
+    fi
+    if [ "$total_structure" -gt 0 ]; then
+        structure_base=$(( STRUCTURE_POINTS / total_structure ))
+        structure_remainder=$(( STRUCTURE_POINTS - structure_base * total_structure ))
+    else
+        structure_base=0
+        structure_remainder=0
+    fi
+    caract_idx=0
+    structure_idx=0
+    echo "  Caractérisation : $total_caract tests ($CARACT_POINTS pts)"
+    echo "  Structure       : $total_structure tests ($STRUCTURE_POINTS pts)"
 fi
 
 # --- Génération du bloc YAML ---
@@ -123,6 +226,7 @@ trap 'rm -f "$block"' EXIT
         ex_name="${exercises[$i]}"
         # Points de cet exercice : les $ex_remainder premiers prennent +1 pt
         # pour absorber le reste, pas de "winner-takes-all" sur le dernier.
+        # (Ignore en mode refactoring : la repartition est categorielle.)
         if [ "$i" -lt "$ex_remainder" ]; then
             ex_points=$(( ex_base + 1 ))
         else
@@ -132,19 +236,34 @@ trap 'rm -f "$block"' EXIT
         # Découverte des méthodes de test de cet exercice
         ex_dir="$TEST_ROOT/$ex_name"
         method_count=0
-        # Tableaux locaux à cet exercice : (FQCN classe, nom méthode)
-        unset ex_classes ex_methods
+        # Tableaux locaux à cet exercice : (FQCN classe, nom méthode, classif)
+        unset ex_classes ex_methods ex_classifications
         ex_classes=()
         ex_methods=()
+        ex_classifications=()
 
         while IFS= read -r f; do
             class_name=$(basename "$f" .java)
-            while IFS= read -r m; do
-                [ -z "$m" ] && continue
+            while IFS= read -r line; do
+                [ -z "$line" ] && continue
+                if [ "$REFACTORING_MODE" = "true" ]; then
+                    m="${line%|*}"
+                    classif="${line#*|}"
+                else
+                    m="$line"
+                    classif="caract"
+                fi
                 ex_classes+=("${TEST_PACKAGE_PREFIX}.${ex_name}.${class_name}")
                 ex_methods+=("$m")
+                ex_classifications+=("$classif")
                 method_count=$((method_count + 1))
-            done < <(extract_test_methods "$f")
+            done < <(
+                if [ "$REFACTORING_MODE" = "true" ]; then
+                    extract_test_methods_classified "$f"
+                else
+                    extract_test_methods "$f"
+                fi
+            )
         done < <(find "$ex_dir" -type f -name '*.java' 2>/dev/null | sort)
 
         if [ "$method_count" -eq 0 ]; then
@@ -152,7 +271,16 @@ trap 'rm -f "$block"' EXIT
             continue
         fi
 
-        echo "  - $ex_name : $method_count méthode(s) ($ex_points pts)" >&2
+        if [ "$REFACTORING_MODE" = "true" ]; then
+            ex_caract=0
+            ex_structure=0
+            for c in "${ex_classifications[@]}"; do
+                [ "$c" = "structure" ] && ex_structure=$((ex_structure + 1)) || ex_caract=$((ex_caract + 1))
+            done
+            echo "  - $ex_name : $method_count méthode(s) ($ex_caract caract + $ex_structure structure)" >&2
+        else
+            echo "  - $ex_name : $method_count méthode(s) ($ex_points pts)" >&2
+        fi
 
         # Répartition des points entre méthodes : les $m_remainder
         # premières méthodes prennent chacune +1 pt pour absorber le reste,
@@ -166,10 +294,34 @@ trap 'rm -f "$block"' EXIT
         for j in "${!ex_methods[@]}"; do
             method="${ex_methods[$j]}"
             fqcn="${ex_classes[$j]}"
-            if [ "$j" -lt "$m_remainder" ]; then
-                m_points=$(( m_base + 1 ))
+            classif="${ex_classifications[$j]}"
+
+            if [ "$REFACTORING_MODE" = "true" ]; then
+                # Repartition categorielle : chaque test caract vaut
+                # CARACT_POINTS/total_caract (avec spread +1), chaque test
+                # structure vaut STRUCTURE_POINTS/total_structure (spread +1).
+                # Les indices caract_idx / structure_idx sont globaux (inter-exercices).
+                if [ "$classif" = "structure" ]; then
+                    if [ "$structure_idx" -lt "$structure_remainder" ]; then
+                        m_points=$(( structure_base + 1 ))
+                    else
+                        m_points=$structure_base
+                    fi
+                    structure_idx=$((structure_idx + 1))
+                else
+                    if [ "$caract_idx" -lt "$caract_remainder" ]; then
+                        m_points=$(( caract_base + 1 ))
+                    else
+                        m_points=$caract_base
+                    fi
+                    caract_idx=$((caract_idx + 1))
+                fi
             else
-                m_points=$m_base
+                if [ "$j" -lt "$m_remainder" ]; then
+                    m_points=$(( m_base + 1 ))
+                else
+                    m_points=$m_base
+                fi
             fi
 
             step_id="${ex_name}_${method}"
