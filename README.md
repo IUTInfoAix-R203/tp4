@@ -2,17 +2,17 @@
 
 ### IUT d'Aix-Marseille - Département Informatique Aix-en-Provence
 
-* **Ressource :** [Syllabus R2.03](https://github.com/IUTInfoAix-R203/syllabus) (compétences, calendrier, évaluations, ressources détaillées)
+- **Ressource :** [Syllabus R2.03](https://github.com/IUTInfoAix-R203/syllabus) (compétences, calendrier, évaluations, ressources détaillées)
 
-* **Équipe pédagogique :**
+- **Équipe pédagogique :**
 
-  * [Sébastien Nedjar](mailto:sebastien.nedjar@univ-amu.fr) - responsable du module
-  * [Sophie Nabitz](mailto:sophie.nabitz@univ-avignon.fr)
-  * [Leïla Sakli Miled](mailto:leila.SAKLI@univ-amu.fr)
+  - [Sébastien Nedjar](mailto:sebastien.nedjar@univ-amu.fr) - responsable du module
+  - [Sophie Nabitz](mailto:sophie.nabitz@univ-avignon.fr)
+  - [Leïla Sakli Miled](mailto:leila.SAKLI@univ-amu.fr)
 
-* **Besoin d'aide ?**
-    * Consulter et/ou créer des [issues](https://github.com/IUTInfoAix-R203/tp4/issues)
-    * [Email](mailto:sebastien.nedjar@univ-amu.fr) pour toute question
+- **Besoin d'aide ?**
+    - Consulter et/ou créer des [issues](https://github.com/IUTInfoAix-R203/tp4/issues)
+    - [Email](mailto:sebastien.nedjar@univ-amu.fr) pour toute question
 
 
 ## TP4 - Refactoring : transformer sans casser
