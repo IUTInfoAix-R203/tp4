@@ -40,7 +40,7 @@ src/test/java/fr/univ_amu/iut/
 
 Respecte cette convention : ne propose pas de placer du code ailleurs. Les classes d'un exercice donné ne dépendent pas des classes d'un autre exercice - chaque sous-paquet est autonome.
 
-`./update-autograding.sh` à la racine du projet est un outil **réservé enseignant** (régénération du bloc autograding de `.github/workflows/classroom.yml`) - ne le suggère pas à l'étudiant.
+Les scripts enseignant (régénération de l'autograding, génération de la version étudiante) sont absents du repo que voit l'étudiant·e. Ne les suggère jamais.
 
 <!-- TDD-PLAYBOOK-START -->
 ## Ton, voix et formatage

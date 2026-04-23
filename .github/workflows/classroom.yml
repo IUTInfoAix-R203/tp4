@@ -25,7 +25,7 @@ jobs:
           distribution: 'zulu'
           cache: maven
 
-      #@@@AUTOGRADING-BEGIN@@@ (généré par update-autograding.sh, ne pas éditer à la main)
+      #@@@AUTOGRADING-BEGIN@@@ (bloc auto-généré par l'outillage enseignant, ne pas éditer à la main)
       - name: Compilation
         id: compilation
         uses: IUTInfoAix-R202/autograding-command-grader@main

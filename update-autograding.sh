@@ -105,7 +105,7 @@ block=$(mktemp)
 trap 'rm -f "$block"' EXIT
 
 {
-    echo "      ${START_MARKER} (généré par update-autograding.sh, ne pas éditer à la main)"
+    echo "      ${START_MARKER} (bloc auto-généré par l'outillage enseignant, ne pas éditer à la main)"
     echo "      - name: Compilation"
     echo "        id: compilation"
     echo "        uses: IUTInfoAix-R202/autograding-command-grader@main"
