@@ -283,6 +283,15 @@ if [ "$APPLY" = true ]; then
         --exclude='.github/workflows/template-sync.yml' \
         "$TMP_DIR/" "$TP_DIR/"
 
+    # Les --exclude empechent la COPIE depuis TMP_DIR, mais preservent
+    # aussi les fichiers --exclude'd cote destination (comportement
+    # voulu pour .git et target). Pour les artefacts enseignant, on
+    # veut explicitement les retirer de la version etudiante generee.
+    rm -f "$TP_DIR/generate-student.sh" \
+          "$TP_DIR/update-autograding.sh" \
+          "$TP_DIR/.github/workflows/generate-student.yml" \
+          "$TP_DIR/.github/workflows/template-sync.yml"
+
     ok "Version étudiante générée dans $TP_DIR/"
     echo ""
     echo -e "${BOLD}Prochaines étapes :${NC}"
