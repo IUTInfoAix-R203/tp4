@@ -31,8 +31,9 @@
 #     granularité pour qu'aucun test ne vale 0 pt, même sur les
 #     exercices à forte cardinalité de tests.
 #
-# Le reporter GitHub Classroom affiche un pourcentage du total, la
-# base 1000 est donc transparente côté étudiant.
+# Le reporter GitHub Classroom affiche le score brut (ex :
+# "Points 250/1000"). Les READMEs doivent donc documenter la base
+# 1000 explicitement, ou la présenter en pourcentage (25 %).
 #
 # Usage: ./update-autograding.sh
 # ============================================================

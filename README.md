@@ -151,22 +151,22 @@ Si c'est le cas, tout est prêt. Le seul test actif (`AppTest`) passe, et les te
 
 ### Comment vous êtes évalués
 
-L'évaluation de ce TP est **entièrement automatique** : à chaque fois que vous poussez (`push`) votre code sur GitHub, un système d'autograding exécute tous vos tests et calcule une note sur 100 points.
+L'évaluation de ce TP est **entièrement automatique** : à chaque fois que vous poussez (`push`) votre code sur GitHub, un système d'autograding exécute tous vos tests et calcule un score sur **1000 points**. Ce score est affiché tel quel par le reporter Classroom ; pour le ramener à la note sur 20, divisez par 50 (ex : 850/1000 = 17/20).
 
-- **10 points** sont attribués si le projet **compile** correctement
-- **90 points** sont répartis entre les différents **tests des exercices** (chaque test vaut un certain nombre de points)
+- **100 points** sont attribués si le projet **compile** correctement
+- **900 points** sont répartis entre les différents **tests des exercices**, chaque test valant au moins 1 point
 - Un test `@Disabled` (non encore activé) rapporte **0 point** - c'est normal
 - Un test activé et **qui passe** rapporte ses points
 - Un test activé et **qui échoue** rapporte 0 point
 
-Votre note augmente progressivement au fil de votre avancement. Il n'y a pas de date limite brutale : chaque push met à jour votre score.
+Votre score augmente progressivement au fil de votre avancement. Il n'y a pas de date limite brutale : chaque push met à jour votre score.
 
 ### Consulter votre note actuelle
 
 Après chaque `push`, rendez-vous sur la page de votre dépôt GitHub -> onglet **"Actions"** -> dernier run du workflow **"GitHub Classroom Workflow"**. Le score apparaît dans le résumé :
 
 ```
-Points 25/100
+Points 250/1000
 ```
 
 Vous pouvez aussi voir le détail test par test pour savoir exactement quels exercices sont validés et lesquels restent à faire.
