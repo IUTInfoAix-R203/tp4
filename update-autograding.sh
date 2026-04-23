@@ -19,10 +19,20 @@
 # test @Disabled exit 0 (Skipped, pas Failed).
 #
 # Convention : un sous-paquet `exerciceN` = un exercice.
-# Répartition : 10 pts compilation + 90 pts équirépartis entre
-# les exercices détectés. À l'intérieur d'un exercice, les points
-# sont répartis entre ses méthodes de test (la dernière absorbe le
-# remainder).
+#
+# Répartition sur un total de 1000 :
+#   - 100 pts compilation
+#   - 900 pts équirépartis entre les exercices détectés (les
+#     $ex_remainder premiers exercices prennent +1 pt pour absorber
+#     le reste, pas de "winner-takes-all").
+#   - À l'intérieur d'un exercice, les points sont équirépartis
+#     entre ses méthodes de test (même règle : les $m_remainder
+#     premières absorbent +1). Le total sur 1000 offre assez de
+#     granularité pour qu'aucun test ne vale 0 pt, même sur les
+#     exercices à forte cardinalité de tests.
+#
+# Le reporter GitHub Classroom affiche un pourcentage du total, la
+# base 1000 est donc transparente côté étudiant.
 #
 # Usage: ./update-autograding.sh
 # ============================================================
@@ -31,8 +41,8 @@ set -e
 
 TEST_ROOT="src/test/java/fr/univ_amu/iut"
 CLASSROOM_YML=".github/workflows/classroom.yml"
-COMPILE_POINTS=10
-TOTAL_EXERCISE_POINTS=90
+COMPILE_POINTS=100
+TOTAL_EXERCISE_POINTS=900
 TIMEOUT_MINUTES=5
 TEST_PACKAGE_PREFIX="fr.univ_amu.iut"
 
@@ -82,7 +92,7 @@ echo "Exercices détectés : $num_ex"
 
 # --- Répartition des points entre exercices ---
 if [ "$num_ex" -eq 0 ]; then
-    compile_points=100
+    compile_points=1000
 else
     compile_points=$COMPILE_POINTS
     ex_base=$(( TOTAL_EXERCISE_POINTS / num_ex ))
@@ -110,9 +120,13 @@ trap 'rm -f "$block"' EXIT
 
     for i in "${!exercises[@]}"; do
         ex_name="${exercises[$i]}"
-        # Points de cet exercice (le dernier absorbe le remainder global)
-        ex_points=$ex_base
-        [ "$i" -eq $(( num_ex - 1 )) ] && ex_points=$(( ex_base + ex_remainder ))
+        # Points de cet exercice : les $ex_remainder premiers prennent +1 pt
+        # pour absorber le reste, pas de "winner-takes-all" sur le dernier.
+        if [ "$i" -lt "$ex_remainder" ]; then
+            ex_points=$(( ex_base + 1 ))
+        else
+            ex_points=$ex_base
+        fi
 
         # Découverte des méthodes de test de cet exercice
         ex_dir="$TEST_ROOT/$ex_name"
@@ -141,10 +155,10 @@ trap 'rm -f "$block"' EXIT
 
         # Répartition des points entre méthodes : les $m_remainder
         # premières méthodes prennent chacune +1 pt pour absorber le reste,
-        # au lieu de tout donner à la dernière. Évite l'effet
-        # "winner-takes-all" quand method_count > ex_points (ex : 18 pts
-        # pour 27 tests -> 18 tests à 1 pt + 9 tests à 0, au lieu de
-        # 26 tests à 0 + 1 test à 18).
+        # au lieu de tout donner à la dernière. La base à 1000 (au lieu
+        # de 100) garantit m_base >= 1 dans tous les cas réalistes, donc
+        # aucun test ne vaut 0 (ex : 180 pts / 27 tests -> 18 tests à 7 pts
+        # + 9 tests à 6 pts).
         m_base=$(( ex_points / method_count ))
         m_remainder=$(( ex_points - m_base * method_count ))
 
