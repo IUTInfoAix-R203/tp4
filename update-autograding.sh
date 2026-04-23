@@ -45,8 +45,12 @@
 #      juste les caractérisations vertes plafonne à 200/1000
 #      (= 4/20). Les points viennent du refactoring effectivement
 #      réalisé, pas du simple fait que le code smelly fonctionne.
-#      Un test est classé "caract" si son nom (classe ou méthode)
-#      matche le pattern caractérisation, "structure" sinon.
+#      Un test est classé "structure" s'il porte `@Disabled`
+#      (directement ou wrappé dans un bloc
+#      /* --student-- @Disabled --end-student-- */ côté solution),
+#      sinon il est classé "caract" - cf. extract_test_methods_classified
+#      plus bas. En mode refactoring, la convention est donc :
+#      caract = actif au départ, structure = à débloquer.
 #
 # Le reporter GitHub Classroom affiche le score brut (ex :
 # "Points 250/1000"). Les READMEs doivent donc documenter la base
