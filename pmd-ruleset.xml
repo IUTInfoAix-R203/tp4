@@ -62,7 +62,12 @@
 
     <rule ref="category/java/design.xml/CyclomaticComplexity">
         <properties>
-            <property name="methodReportLevel" value="10"/>
+            <!-- Seuil 15 : plus tolérant que le défaut PMD (10). Les
+                 solutions TDD des kata (GrilleDemineur, StringCalculator)
+                 finissent parfois avec une complexité 10-13 sans être
+                 smelly ; le vrai smell commence >= 15. GildedRose du
+                 tp4 monte à 19 et sera bien détecté. -->
+            <property name="methodReportLevel" value="15"/>
             <property name="classReportLevel" value="80"/>
         </properties>
     </rule>
