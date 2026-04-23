@@ -89,7 +89,12 @@ public class App {
 
   private static void demoAnimal() {
     for (String type : new String[] {"chien", "chat", "vache", "canard"}) {
+      // --solution--
+      System.out.printf("  %s : %s%n", type, Animal.creer(type, type).faireDuBruit());
+      // --end-solution--
+      /* --student--
       System.out.printf("  %s : %s%n", type, new Animal(type, type).faireDuBruit());
+      --end-student-- */
     }
   }
 

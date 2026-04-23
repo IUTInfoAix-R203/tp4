@@ -90,14 +90,18 @@ class MenuTest {
   // Tests de structure (à activer au fur et à mesure du refactoring)
   // =========================================================================
 
+  /* --student--
   @Disabled("Activer après avoir créé la classe Historique")
+  --end-student-- */
   @Test
   void classeHistoriqueExiste() throws Exception {
     Class<?> histo = Class.forName("fr.univ_amu.iut.exercice3.Historique");
     assertThat(histo).isNotNull();
   }
 
+  /* --student--
   @Disabled("Activer après avoir doté Historique des trois méthodes attendues")
+  --end-student-- */
   @Test
   void classeHistoriqueALesTroisMethodes() throws Exception {
     Class<?> histo = Class.forName("fr.univ_amu.iut.exercice3.Historique");
@@ -108,7 +112,9 @@ class MenuTest {
     assertThat(histo.getDeclaredMethod("afficher")).as("Historique.afficher()").isNotNull();
   }
 
+  /* --student--
   @Disabled("Activer après avoir remplacé le champ historique de Menu par un Historique")
+  --end-student-- */
   @Test
   void menuUtiliseUnChampDeTypeHistorique() throws Exception {
     Class<?> histo = Class.forName("fr.univ_amu.iut.exercice3.Historique");
@@ -123,4 +129,7 @@ class MenuTest {
         .as("Menu doit avoir un champ de type Historique après Extract Class")
         .isTrue();
   }
+
+  @SuppressWarnings("unused")
+  private static final Class<?> DISABLED_USAGE_MARKER = Disabled.class;
 }

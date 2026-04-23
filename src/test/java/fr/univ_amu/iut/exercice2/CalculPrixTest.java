@@ -80,31 +80,41 @@ class CalculPrixTest {
   // Tests de structure (à activer au fur et à mesure du refactoring)
   // =========================================================================
 
+  /* --student--
   @Disabled("Activer après avoir extrait TAUX_TVA")
+  --end-student-- */
   @Test
   void constanteTauxTVAExtraite() throws Exception {
     assertConstanteDouble("TAUX_TVA", 1.20);
   }
 
+  /* --student--
   @Disabled("Activer après avoir extrait SEUIL_REMISE_FIDELITE")
+  --end-student-- */
   @Test
   void constanteSeuilRemiseExtraite() throws Exception {
     assertConstanteDouble("SEUIL_REMISE_FIDELITE", 500.0);
   }
 
+  /* --student--
   @Disabled("Activer après avoir extrait TAUX_REMISE_FIDELITE")
+  --end-student-- */
   @Test
   void constanteTauxRemiseExtraite() throws Exception {
     assertConstanteDouble("TAUX_REMISE_FIDELITE", 0.95);
   }
 
+  /* --student--
   @Disabled("Activer après avoir extrait SEUIL_FRAIS_PORT_OFFERT")
+  --end-student-- */
   @Test
   void constanteSeuilFraisPortExtraite() throws Exception {
     assertConstanteDouble("SEUIL_FRAIS_PORT_OFFERT", 50.0);
   }
 
+  /* --student--
   @Disabled("Activer après avoir extrait MONTANT_FRAIS_PORT")
+  --end-student-- */
   @Test
   void constanteMontantFraisPortExtraite() throws Exception {
     assertConstanteDouble("MONTANT_FRAIS_PORT", 8.0);
@@ -124,4 +134,7 @@ class CalculPrixTest {
         .as("%s doit valoir %s", nom, valeurAttendue)
         .isEqualTo(valeurAttendue, within(0.001));
   }
+
+  @SuppressWarnings("unused")
+  private static final Class<?> DISABLED_USAGE_MARKER = Disabled.class;
 }

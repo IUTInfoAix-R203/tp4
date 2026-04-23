@@ -49,17 +49,21 @@ class ServiceNotificationTest {
   // Structure : Parameter Object MessageEmail
   // =========================================================================
 
+  /* --student--
   @Disabled("Activer après avoir créé MessageEmail (record)")
+  --end-student-- */
   @Test
   void messageEmailEstUnRecord() throws Exception {
-    Class<?> cls = Class.forName("fr.univ_amu.iut.exercice3.MessageEmail");
+    Class<?> cls = Class.forName("fr.univ_amu.iut.exercice5.MessageEmail");
     assertThat(cls.isRecord()).as("MessageEmail doit être un record").isTrue();
   }
 
+  /* --student--
   @Disabled("Activer après avoir créé MessageEmail avec ses 7 composants")
+  --end-student-- */
   @Test
   void messageEmailA7Composants() throws Exception {
-    Class<?> cls = Class.forName("fr.univ_amu.iut.exercice3.MessageEmail");
+    Class<?> cls = Class.forName("fr.univ_amu.iut.exercice5.MessageEmail");
     assertThat(cls.getRecordComponents())
         .as(
             "MessageEmail doit avoir 7 composants : destinataire, expediteur, sujet, "
@@ -67,19 +71,23 @@ class ServiceNotificationTest {
         .hasSize(7);
   }
 
+  /* --student--
   @Disabled("Activer après avoir créé la nouvelle méthode envoyer(MessageEmail)")
+  --end-student-- */
   @Test
   void nouvelleSignatureAvecMessageEmail() throws Exception {
-    Class<?> messageClass = Class.forName("fr.univ_amu.iut.exercice3.MessageEmail");
+    Class<?> messageClass = Class.forName("fr.univ_amu.iut.exercice5.MessageEmail");
     java.lang.reflect.Method envoyer =
         ServiceNotification.class.getDeclaredMethod("envoyer", messageClass);
     assertThat(envoyer.getParameterCount()).isEqualTo(1);
   }
 
+  /* --student--
   @Disabled("Activer après avoir creé la nouvelle methode : elle doit produire le même format")
+  --end-student-- */
   @Test
   void nouvelleMethodeProduitLeMemeFormat() throws Exception {
-    Class<?> messageClass = Class.forName("fr.univ_amu.iut.exercice3.MessageEmail");
+    Class<?> messageClass = Class.forName("fr.univ_amu.iut.exercice5.MessageEmail");
     Object message =
         messageClass
             .getDeclaredConstructor(
@@ -98,4 +106,7 @@ class ServiceNotificationTest {
         service.envoyer("a@b.c", "c@d.e", "Test", "Contenu", true, 2, new String[] {"doc.pdf"});
     assertThat(mailNouveau).isEqualTo(mailAncien);
   }
+
+  @SuppressWarnings("unused")
+  private static final Class<?> DISABLED_USAGE_MARKER = Disabled.class;
 }

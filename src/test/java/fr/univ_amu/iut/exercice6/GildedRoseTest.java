@@ -132,7 +132,9 @@ class GildedRoseTest {
   //  Conjured (nouvelle fonctionnalité - à activer après le refactoring)
   // =========================================================================
 
+  /* --student--
   @Disabled("Activer après avoir refactoré et ajouté le support des articles Conjured")
+  --end-student-- */
   @Test
   void conjured_avant_peremption_baisse_de_2() {
     Item[] items = {new Item("Conjured Mana Cake", 5, 10)};
@@ -140,7 +142,9 @@ class GildedRoseTest {
     assertThat(items[0].quality).isEqualTo(8);
   }
 
+  /* --student--
   @Disabled("Activer après avoir refactoré et ajouté le support des articles Conjured")
+  --end-student-- */
   @Test
   void conjured_apres_peremption_baisse_de_4() {
     Item[] items = {new Item("Conjured Mana Cake", 0, 10)};
@@ -148,11 +152,16 @@ class GildedRoseTest {
     assertThat(items[0].quality).isEqualTo(6);
   }
 
+  /* --student--
   @Disabled("Activer après avoir refactoré et ajouté le support des articles Conjured")
+  --end-student-- */
   @Test
   void conjured_ne_devient_pas_negatif() {
     Item[] items = {new Item("Conjured Mana Cake", 5, 1)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].quality).isZero();
   }
+
+  @SuppressWarnings("unused")
+  private static final Class<?> DISABLED_USAGE_MARKER = Disabled.class;
 }

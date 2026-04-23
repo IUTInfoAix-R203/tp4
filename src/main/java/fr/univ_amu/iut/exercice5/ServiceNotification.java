@@ -1,7 +1,7 @@
 package fr.univ_amu.iut.exercice5;
 
 /**
- * Exercice 3 - Introduce Parameter Object.
+ * Exercice 5 - Introduce Parameter Object.
  *
  * <p>La méthode {@link #envoyer} prend <b>7 paramètres</b>. C'est le smell <b>Long Parameter
  * List</b> dans toute sa gloire :
@@ -34,6 +34,14 @@ public class ServiceNotification {
       boolean important,
       int priorite,
       String[] piecesJointes) {
+    // --solution--
+    // Apres refactoring, la methode a 7 parametres delegue simplement a la nouvelle
+    // signature. Les appelants qui ne sont pas encore migres continuent de marcher.
+    return envoyer(
+        new MessageEmail(
+            destinataire, expediteur, sujet, corps, important, priorite, piecesJointes));
+    // --end-solution--
+    /* --student--
     StringBuilder sb = new StringBuilder();
     if (important) {
       sb.append("[IMPORTANT] ");
@@ -50,5 +58,33 @@ public class ServiceNotification {
       }
     }
     return sb.toString();
+    --end-student-- */
   }
+
+  // --solution--
+  /** Nouvelle signature canonique : un seul parametre qui regroupe l'ensemble du message. */
+  public String envoyer(MessageEmail message) {
+    StringBuilder sb = new StringBuilder();
+    if (message.important()) {
+      sb.append("[IMPORTANT] ");
+    }
+    sb.append("[P").append(message.priorite()).append("] ");
+    sb.append("De: ")
+        .append(message.expediteur())
+        .append(", A: ")
+        .append(message.destinataire())
+        .append("\n");
+    sb.append("Sujet: ").append(message.sujet()).append("\n");
+    sb.append("Corps: ").append(message.corps());
+    String[] piecesJointes = message.piecesJointes();
+    if (piecesJointes != null && piecesJointes.length > 0) {
+      sb.append("\nPieces jointes: ");
+      for (int i = 0; i < piecesJointes.length; i++) {
+        if (i > 0) sb.append(", ");
+        sb.append(piecesJointes[i]);
+      }
+    }
+    return sb.toString();
+  }
+  // --end-solution--
 }

@@ -209,7 +209,23 @@ if find "$TMP_DIR/src" \
     info "Mode refactoring detecte (bloc /* --student-- */ present)"
 fi
 
-# --- 1. Strip des blocs solution (source) ---
+# --- 1a. Suppression des fichiers marques // --solution-only-- ---
+# Les fichiers qui contiennent le marqueur // --solution-only-- sur une
+# ligne sont entierement absents de la version etudiante. Typique pour
+# une classe extraite par Extract Class : elle est presente cote
+# enseignant comme reference, absente cote etudiant·e qui doit la creer.
+info "Suppression des fichiers marques // --solution-only--"
+DELETED=0
+while IFS= read -r -d '' file; do
+    if head -20 "$file" | grep -q '// --solution-only--'; then
+        echo "  deleted: ${file#"$TMP_DIR"/}"
+        rm -f "$file"
+        DELETED=$((DELETED + 1))
+    fi
+done < <(find "$TMP_DIR/src" \( -path '*/exercice*/*.java' -o -path '*/bonus*/*.java' \) -print0 2>/dev/null)
+ok "$DELETED fichier(s) entier(s) supprime(s)"
+
+# --- 1b. Strip des blocs solution (source) ---
 info "Suppression des blocs // --solution-- ... // --end-solution--"
 
 STRIPPED=0

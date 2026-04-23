@@ -1,7 +1,7 @@
 package fr.univ_amu.iut.exercice6;
 
 /**
- * Exercice 4 - Gilded Rose (capstone).
+ * Exercice 6 - Gilded Rose (capstone).
  *
  * <p>Ceci est le code existant de gestion de l'inventaire de la Gilded Rose. La direction veut
  * ajouter les articles <em>Conjured</em> (qui se dégradent deux fois plus vite que les articles
@@ -49,6 +49,12 @@ public class GildedRose {
   }
 
   public void updateQuality() {
+    // --solution--
+    for (Item item : items) {
+      updaterFor(item).apply(item);
+    }
+    // --end-solution--
+    /* --student--
     for (int i = 0; i < items.length; i++) {
       if (!items[i].name.equals("Aged Brie")
           && !items[i].name.equals("Backstage passes to a TAFKAL80ETC concert")) {
@@ -99,5 +105,24 @@ public class GildedRose {
         }
       }
     }
+    --end-student-- */
   }
+
+  // --solution--
+  private static Updater updaterFor(Item item) {
+    if (item.name.equals("Aged Brie")) {
+      return new BrieUpdater();
+    }
+    if (item.name.equals("Sulfuras, Hand of Ragnaros")) {
+      return new SulfurasUpdater();
+    }
+    if (item.name.equals("Backstage passes to a TAFKAL80ETC concert")) {
+      return new BackstageUpdater();
+    }
+    if (item.name.startsWith("Conjured")) {
+      return new ConjuredUpdater();
+    }
+    return new NormalUpdater();
+  }
+  // --end-solution--
 }

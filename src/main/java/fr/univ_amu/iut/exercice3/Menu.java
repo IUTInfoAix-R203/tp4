@@ -30,23 +30,18 @@ import java.util.Map;
  *       publique de {@code Menu} ne doit pas changer</b> (les tests de caractérisation vérifient le
  *       comportement observable).
  * </ul>
- *
- * <p>Conseil d'ordre de travail :
- *
- * <ol>
- *   <li>Écrivez d'abord la classe {@code Historique} avec les trois méthodes attendues.
- *   <li>Dans {@code Menu}, remplacez le champ liste par un champ {@code Historique}, redirigez
- *       {@code choisir} et {@code afficherHistorique} vers ce champ. Les tests de caractérisation
- *       doivent rester verts à chaque étape.
- *   <li>Activez les tests de structure au fur et à mesure.
- * </ol>
  */
 public class Menu {
 
+  // --solution--
+  private final Historique historique = new Historique();
+  // --end-solution--
+  /* --student--
   private static final int TAILLE_MAX_HISTORIQUE = 10;
+  private final List<String> historique = new ArrayList<>();
+  --end-student-- */
 
   private final Map<String, Runnable> options = new LinkedHashMap<>();
-  private final List<String> historique = new ArrayList<>();
 
   /** Ajoute une option au menu. L'ordre d'insertion est l'ordre d'affichage. */
   public void ajouterOption(String titre, Runnable action) {
@@ -74,20 +69,36 @@ public class Menu {
       throw new IllegalArgumentException("Indice hors bornes : " + indice);
     }
     String titre = options.keySet().toArray(new String[0])[indice - 1];
+    // --solution--
+    historique.enregistrer(titre);
+    // --end-solution--
+    /* --student--
     historique.add(titre);
     if (historique.size() > TAILLE_MAX_HISTORIQUE) {
       historique.remove(0);
     }
+    --end-student-- */
     options.get(titre).run();
   }
 
   /** Retourne l'historique formaté (plus récent en bas, une entrée par ligne). */
   public String afficherHistorique() {
+    // --solution--
+    return historique.afficher();
+    // --end-solution--
+    /* --student--
     StringBuilder sb = new StringBuilder();
     sb.append("--- Historique ---\n");
     for (String h : historique) {
       sb.append("- ").append(h).append("\n");
     }
     return sb.toString();
+    --end-student-- */
   }
+
+  // Imports List / ArrayList conservés : utilisés dans les blocs /* --student-- */
+  // (décommentés lors de la génération de la version étudiante).
+  @SuppressWarnings("unused")
+  private static final Class<?> STUDENT_IMPORTS_USAGE_MARKER =
+      (Math.random() == -1) ? List.class : ArrayList.class;
 }
