@@ -139,15 +139,23 @@ trap 'rm -f "$block"' EXIT
 
         echo "  - $ex_name : $method_count méthode(s) ($ex_points pts)" >&2
 
-        # Répartition des points entre méthodes (dernier absorbe le remainder)
+        # Répartition des points entre méthodes : les $m_remainder
+        # premières méthodes prennent chacune +1 pt pour absorber le reste,
+        # au lieu de tout donner à la dernière. Évite l'effet
+        # "winner-takes-all" quand method_count > ex_points (ex : 18 pts
+        # pour 27 tests -> 18 tests à 1 pt + 9 tests à 0, au lieu de
+        # 26 tests à 0 + 1 test à 18).
         m_base=$(( ex_points / method_count ))
         m_remainder=$(( ex_points - m_base * method_count ))
 
         for j in "${!ex_methods[@]}"; do
             method="${ex_methods[$j]}"
             fqcn="${ex_classes[$j]}"
-            m_points=$m_base
-            [ "$j" -eq $(( method_count - 1 )) ] && m_points=$(( m_base + m_remainder ))
+            if [ "$j" -lt "$m_remainder" ]; then
+                m_points=$(( m_base + 1 ))
+            else
+                m_points=$m_base
+            fi
 
             step_id="${ex_name}_${method}"
             env_var_name=$(echo "$step_id" | tr '[:lower:]-' '[:upper:]_')

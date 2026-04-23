@@ -20,14 +20,7 @@
 
 ## Objectifs de la séance
 
-<!-- ============================================================
-     SECTION PÉDAGOGIQUE À REMPLIR PAR L'ENSEIGNANT
-     Structure obligatoire (voir CLAUDE.md § Approche pédagogique)
-     ============================================================ -->
-
 ### Ce que vous saurez faire à la fin de cette séance
-
-<!-- Tableau taxonomie de Bloom -adapter les objectifs et exercices au TP -->
 
 Les exercices de ce TP sont organisés en progression. Cette progression suit la **taxonomie de Bloom**, un modèle pédagogique qui décrit les niveaux de maîtrise d'un savoir-faire -du plus simple (comprendre un concept) au plus complexe (créer une application complète).
 
@@ -241,14 +234,14 @@ Ou via `Ctrl+Shift+B` dans VS Code.
 
 ```bash
 git add .
-git commit -m "Exercice N terminé"
+git commit -m "feat(exerciceN): termine l'exercice"
 git push -u origin exerciceN
 ```
 
 **9. Créer une Pull Request** pour voir votre travail et recevoir une review automatique :
 
 ```bash
-gh pr create --title "Exercice N terminé" --body "Tous les tests passent."
+gh pr create --title "feat(exerciceN): termine l'exercice" --body "Tous les tests passent."
 ```
 
 Ouvrez la PR dans le navigateur (`gh pr view --web`) pour consulter le diff, les checks CI, le score autograding et les commentaires de la review Copilot.
@@ -282,14 +275,6 @@ Vous avez le droit d'utiliser **Copilot Chat** (panneau latéral dans VS Code) q
 Le TP est découpé en plusieurs **exercices** à faire dans l'ordre. Chaque exercice vit dans son propre sous-paquet (code et tests en miroir). L'exercice 1 est très guidé pas à pas pour vous familiariser avec l'environnement. À partir de l'exercice 2, une boucle de travail systématique est introduite que vous appliquerez pour tous les exercices suivants.
 
 ---
-
-<!-- ============================================================
-     EXERCICES - À ÉCRIRE PAR L'ENSEIGNANT
-     Chaque exercice est un titre de niveau 2 : ## Exercice N - Titre
-     Sous-sections de niveau 3 : ### Objectif, ### Ce que vous allez
-     découvrir, ### Découverte du code, ### Travail à faire,
-     ### Workflow de développement
-     ============================================================ -->
 
 ## Protocole de refactoring à appliquer à chaque exercice
 

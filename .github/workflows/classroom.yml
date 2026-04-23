@@ -44,7 +44,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice1.FactureTest factureVide_totalEstZero
           timeout: 5
-          max-score: 2
+          max-score: 3
 
       - name: "exercice1 : unSeulArticleSousLeSeuil_applique_TVA_sans_remise"
         id: exercice1_unSeulArticleSousLeSeuil_applique_TVA_sans_remise
@@ -54,7 +54,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice1.FactureTest unSeulArticleSousLeSeuil_applique_TVA_sans_remise
           timeout: 5
-          max-score: 2
+          max-score: 3
 
       - name: "exercice1 : unSeulArticleSurLeSeuil_applique_TVA_et_remise"
         id: exercice1_unSeulArticleSurLeSeuil_applique_TVA_et_remise
@@ -134,7 +134,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice1.FactureTest methodeCalculerTotalCourte
           timeout: 5
-          max-score: 4
+          max-score: 2
 
       - name: "exercice2 : chien_waouf"
         id: exercice2_chien_waouf
@@ -144,7 +144,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice2.AnimalTest chien_waouf
           timeout: 5
-          max-score: 2
+          max-score: 3
 
       - name: "exercice2 : chat_miaou"
         id: exercice2_chat_miaou
@@ -154,7 +154,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice2.AnimalTest chat_miaou
           timeout: 5
-          max-score: 2
+          max-score: 3
 
       - name: "exercice2 : vache_meuh"
         id: exercice2_vache_meuh
@@ -234,7 +234,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice2.AnimalTest fabriqueCreeLaBonneEspece
           timeout: 5
-          max-score: 4
+          max-score: 2
 
       - name: "exercice3 : mailMinimal_sansImportanceSansPJ"
         id: exercice3_mailMinimal_sansImportanceSansPJ
@@ -244,7 +244,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice3.ServiceNotificationTest mailMinimal_sansImportanceSansPJ
           timeout: 5
-          max-score: 2
+          max-score: 3
 
       - name: "exercice3 : mailImportantAfficheLeTag"
         id: exercice3_mailImportantAfficheLeTag
@@ -254,7 +254,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice3.ServiceNotificationTest mailImportantAfficheLeTag
           timeout: 5
-          max-score: 2
+          max-score: 3
 
       - name: "exercice3 : piecesJointesSontListees"
         id: exercice3_piecesJointesSontListees
@@ -264,7 +264,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice3.ServiceNotificationTest piecesJointesSontListees
           timeout: 5
-          max-score: 2
+          max-score: 3
 
       - name: "exercice3 : sansPiecesJointes_pasDeLigneDePieces"
         id: exercice3_sansPiecesJointes_pasDeLigneDePieces
@@ -274,7 +274,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice3.ServiceNotificationTest sansPiecesJointes_pasDeLigneDePieces
           timeout: 5
-          max-score: 2
+          max-score: 3
 
       - name: "exercice3 : messageEmailEstUnRecord"
         id: exercice3_messageEmailEstUnRecord
@@ -284,7 +284,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice3.ServiceNotificationTest messageEmailEstUnRecord
           timeout: 5
-          max-score: 2
+          max-score: 3
 
       - name: "exercice3 : messageEmailA7Composants"
         id: exercice3_messageEmailA7Composants
@@ -294,7 +294,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice3.ServiceNotificationTest messageEmailA7Composants
           timeout: 5
-          max-score: 2
+          max-score: 3
 
       - name: "exercice3 : nouvelleSignatureAvecMessageEmail"
         id: exercice3_nouvelleSignatureAvecMessageEmail
@@ -314,7 +314,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice3.ServiceNotificationTest nouvelleMethodeProduitLeMemeFormat
           timeout: 5
-          max-score: 8
+          max-score: 2
 
       - name: "exercice4 : normal_avantPeremption_quality_baisse_de_1_et_sellIn_baisse_de_1"
         id: exercice4_normal_avantPeremption_quality_baisse_de_1_et_sellIn_baisse_de_1
@@ -324,7 +324,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice4.GildedRoseTest normal_avantPeremption_quality_baisse_de_1_et_sellIn_baisse_de_1
           timeout: 5
-          max-score: 1
+          max-score: 2
 
       - name: "exercice4 : normal_apresPeremption_quality_baisse_de_2"
         id: exercice4_normal_apresPeremption_quality_baisse_de_2
@@ -334,7 +334,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice4.GildedRoseTest normal_apresPeremption_quality_baisse_de_2
           timeout: 5
-          max-score: 1
+          max-score: 2
 
       - name: "exercice4 : normal_quality_ne_devient_jamais_negative"
         id: exercice4_normal_quality_ne_devient_jamais_negative
@@ -344,7 +344,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice4.GildedRoseTest normal_quality_ne_devient_jamais_negative
           timeout: 5
-          max-score: 1
+          max-score: 2
 
       - name: "exercice4 : agedBrie_augmente_en_quality_avec_le_temps"
         id: exercice4_agedBrie_augmente_en_quality_avec_le_temps
@@ -354,7 +354,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice4.GildedRoseTest agedBrie_augmente_en_quality_avec_le_temps
           timeout: 5
-          max-score: 1
+          max-score: 2
 
       - name: "exercice4 : agedBrie_apres_peremption_augmente_deux_fois_plus_vite"
         id: exercice4_agedBrie_apres_peremption_augmente_deux_fois_plus_vite
@@ -364,7 +364,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice4.GildedRoseTest agedBrie_apres_peremption_augmente_deux_fois_plus_vite
           timeout: 5
-          max-score: 1
+          max-score: 2
 
       - name: "exercice4 : agedBrie_quality_ne_depasse_jamais_50"
         id: exercice4_agedBrie_quality_ne_depasse_jamais_50
@@ -374,7 +374,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice4.GildedRoseTest agedBrie_quality_ne_depasse_jamais_50
           timeout: 5
-          max-score: 1
+          max-score: 2
 
       - name: "exercice4 : sulfuras_nest_jamais_vendu_ni_degrade"
         id: exercice4_sulfuras_nest_jamais_vendu_ni_degrade
@@ -384,7 +384,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice4.GildedRoseTest sulfuras_nest_jamais_vendu_ni_degrade
           timeout: 5
-          max-score: 1
+          max-score: 2
 
       - name: "exercice4 : sulfuras_conserve_sa_quality_quelle_que_soit_la_date"
         id: exercice4_sulfuras_conserve_sa_quality_quelle_que_soit_la_date
@@ -394,7 +394,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice4.GildedRoseTest sulfuras_conserve_sa_quality_quelle_que_soit_la_date
           timeout: 5
-          max-score: 1
+          max-score: 2
 
       - name: "exercice4 : backstage_plus_de_10_jours_augmente_de_1"
         id: exercice4_backstage_plus_de_10_jours_augmente_de_1
@@ -474,7 +474,7 @@ jobs:
           setup-command: ""
           command: ./grade-test.sh fr.univ_amu.iut.exercice4.GildedRoseTest conjured_ne_devient_pas_negatif
           timeout: 5
-          max-score: 9
+          max-score: 1
 
       - name: Autograding Reporter
         uses: IUTInfoAix-R202/autograding-grading-reporter@main

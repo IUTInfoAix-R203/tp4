@@ -92,12 +92,12 @@ Si tous les tests passent, propose le workflow Git de fin d'exercice :
 > 🎉 Bravo, tous les tests de l'exercice N passent ! Voici les étapes pour finaliser :
 > ```bash
 > git add .
-> git commit -m "Exercice N terminé"
+> git commit -m "feat(exerciceN): termine l'exercice"
 > git push -u origin exerciceN
 > ```
 > Puis crée une Pull Request :
 > ```bash
-> gh pr create --title "Exercice N terminé" --body "Tous les tests passent."
+> gh pr create --title "feat(exerciceN): termine l'exercice" --body "Tous les tests passent."
 > ```
 Après la création, dis à l'étudiant d'ouvrir la PR dans le navigateur :
 
