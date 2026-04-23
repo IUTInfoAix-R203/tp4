@@ -72,7 +72,9 @@ class FactureTest {
   // Tests de structure (à activer au fur et à mesure du refactoring)
   // =========================================================================
 
+  /* --student--
   @Disabled("Activer après avoir extrait la méthode sommeHT")
+  --end-student-- */
   @Test
   void methodeSommeHTExtraite() throws Exception {
     Method m = Facture.class.getDeclaredMethod("sommeHT", Article[].class);
@@ -81,7 +83,9 @@ class FactureTest {
     assertThat((double) m.invoke(new Facture(), (Object) articles)).isEqualTo(35.0, within(0.001));
   }
 
+  /* --student--
   @Disabled("Activer après avoir extrait la méthode appliquerTVA")
+  --end-student-- */
   @Test
   void methodeAppliquerTVAExtraite() throws Exception {
     Method m = Facture.class.getDeclaredMethod("appliquerTVA", double.class);
@@ -89,7 +93,9 @@ class FactureTest {
     assertThat((double) m.invoke(new Facture(), 50.0)).isEqualTo(60.0, within(0.001));
   }
 
+  /* --student--
   @Disabled("Activer après avoir extrait la méthode appliquerRemise")
+  --end-student-- */
   @Test
   void methodeAppliquerRemiseExtraite() throws Exception {
     Method m = Facture.class.getDeclaredMethod("appliquerRemise", double.class);
@@ -100,7 +106,9 @@ class FactureTest {
         .isEqualTo(50.0, within(0.001)); // pas de remise
   }
 
+  /* --student--
   @Disabled("Activer après avoir raccourci calculerTotal")
+  --end-student-- */
   @Test
   void methodeCalculerTotalCourte() throws Exception {
     // Après Extract Method, calculerTotal est court (par exemple 3 lignes de composition).
@@ -110,4 +118,9 @@ class FactureTest {
     Method m = Facture.class.getDeclaredMethod("calculerTotal", Article[].class);
     assertThat(m.getModifiers() & java.lang.reflect.Modifier.PUBLIC).isNotZero();
   }
+
+  // Import @Disabled conservé : utilisé dans les blocs /* --student-- */ ci-dessus
+  // (décommentés lors de la génération de la version étudiante).
+  @SuppressWarnings("unused")
+  private static final Class<?> DISABLED_USAGE_MARKER = Disabled.class;
 }

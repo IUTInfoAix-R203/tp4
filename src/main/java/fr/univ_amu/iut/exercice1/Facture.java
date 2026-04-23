@@ -33,6 +33,10 @@ public class Facture {
    * @return montant total TTC, remise déduite le cas échéant
    */
   public double calculerTotal(Article[] articles) {
+    // --solution--
+    return appliquerRemise(appliquerTVA(sommeHT(articles)));
+    // --end-solution--
+    /* --student--
     // somme des HT
     double total = 0;
     for (Article a : articles) {
@@ -45,5 +49,27 @@ public class Facture {
       total = total * TAUX_REMISE;
     }
     return total;
+    --end-student-- */
   }
+
+  // --solution--
+  private double sommeHT(Article[] articles) {
+    double total = 0;
+    for (Article a : articles) {
+      total += a.prixUnitaireHT() * a.quantite();
+    }
+    return total;
+  }
+
+  private double appliquerTVA(double totalHT) {
+    return totalHT * TAUX_TVA;
+  }
+
+  private double appliquerRemise(double totalTTC) {
+    if (totalTTC > SEUIL_REMISE) {
+      return totalTTC * TAUX_REMISE;
+    }
+    return totalTTC;
+  }
+  // --end-solution--
 }

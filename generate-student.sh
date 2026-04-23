@@ -195,6 +195,20 @@ trap cleanup EXIT
 info "Extraction de la branche solution..."
 git -C "$TP_DIR" archive solution | tar -C "$TMP_DIR" -x
 
+# --- Détection du mode refactoring ---
+# Si au moins une source ou test contient un bloc /* --student-- ...
+# --end-student-- */, on bascule en mode refactoring : smelly et refactored
+# cohabitent dans la meme source, l'auto-@Disabled est skippe (les tests
+# de caracterisation doivent rester actifs cote etudiant).
+REFACTORING_MODE=false
+if find "$TMP_DIR/src" \
+        \( -path '*/exercice*/*.java' -o -path '*/bonus*/*.java' \) \
+        -print0 2>/dev/null \
+    | xargs -0 grep -l '/\* --student--' 2>/dev/null | grep -q .; then
+    REFACTORING_MODE=true
+    info "Mode refactoring detecte (bloc /* --student-- */ present)"
+fi
+
 # --- 1. Strip des blocs solution (source) ---
 info "Suppression des blocs // --solution-- ... // --end-solution--"
 
@@ -207,23 +221,45 @@ while IFS= read -r -d '' file; do
     fi
 done < <(find "$TMP_DIR/src/main/java" \( -path '*/exercice*/*.java' -o -path '*/bonus*/*.java' \) -print0 2>/dev/null)
 
-ok "$STRIPPED fichier(s) source strippé(s)"
+ok "$STRIPPED fichier(s) source strippe(s)"
+
+# --- 1bis. Decommentage des blocs /* --student-- ... --end-student-- */ ---
+# Sur la branche solution ces blocs sont un commentaire Java inerte (ils
+# portent la version smelly du code, cote-a-cote avec la version
+# refactorisee). On retire juste les delimiteurs pour rendre le bloc
+# actif cote etudiant.
+if [ "$REFACTORING_MODE" = "true" ]; then
+    info "Decommentage des blocs /* --student-- ... --end-student-- */"
+    UNCOMMENTED=0
+    while IFS= read -r -d '' file; do
+        if grep -q '/\* --student--' "$file"; then
+            sed -i '/\/\* --student--/d; /--end-student-- \*\//d' "$file"
+            UNCOMMENTED=$((UNCOMMENTED + 1))
+            echo "  uncommented: ${file#"$TMP_DIR"/}"
+        fi
+    done < <(find "$TMP_DIR/src" \( -path '*/exercice*/*.java' -o -path '*/bonus*/*.java' \) -print0 2>/dev/null)
+    ok "$UNCOMMENTED fichier(s) source decommente(s)"
+fi
 
 # --- 2. Ajout de @Disabled aux tests ---
-info "Ajout de @Disabled aux tests des exercices..."
+if [ "$REFACTORING_MODE" = "true" ]; then
+    info "Mode refactoring : auto-@Disabled des tests skippe (les caracterisation tests restent actifs)"
+else
+    info "Ajout de @Disabled aux tests des exercices..."
 
-DISABLED_COUNT=0
-while IFS= read -r -d '' file; do
-    disable_exercise_tests_in_file "$file"
+    DISABLED_COUNT=0
+    while IFS= read -r -d '' file; do
+        disable_exercise_tests_in_file "$file"
 
-    ADDED=$(grep -c "@Disabled" "$file" || true)
-    if [ "$ADDED" -gt 0 ]; then
-        DISABLED_COUNT=$((DISABLED_COUNT + ADDED))
-        echo "  @Disabled: ${file#"$TMP_DIR"/} ($ADDED tests)"
-    fi
-done < <(find "$TMP_DIR/src/test/java" \( -path '*/exercice*/*.java' -o -path '*/bonus*/*.java' \) -print0 2>/dev/null)
+        ADDED=$(grep -c "@Disabled" "$file" || true)
+        if [ "$ADDED" -gt 0 ]; then
+            DISABLED_COUNT=$((DISABLED_COUNT + ADDED))
+            echo "  @Disabled: ${file#"$TMP_DIR"/} ($ADDED tests)"
+        fi
+    done < <(find "$TMP_DIR/src/test/java" \( -path '*/exercice*/*.java' -o -path '*/bonus*/*.java' \) -print0 2>/dev/null)
 
-ok "$DISABLED_COUNT annotation(s) @Disabled ajoutée(s)"
+    ok "$DISABLED_COUNT annotation(s) @Disabled ajoutee(s)"
+fi
 
 # --- 3. Spotless (supprime imports inutilisés, reformate) ---
 info "Exécution de Spotless (formatage + nettoyage imports)..."
