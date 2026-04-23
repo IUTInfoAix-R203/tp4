@@ -289,6 +289,41 @@ Le TP est découpé en plusieurs **exercices** à faire dans l'ordre. Chaque exe
 
 ---
 
+## Outils de refactoring dans VS Code
+
+Votre Codespace embarque l'extension Java officielle (Red Hat Language Server) : elle fournit une dizaine de refactorings **automatisés et sûrs** accessibles depuis l'éditeur. Les utiliser est **attendu** dans ce TP : refactorer à la main, c'est risquer des renommages oubliés, des imports cassés, des coquilles. L'IDE fait ces transformations de manière atomique et mécanique. Documentation officielle : <https://code.visualstudio.com/docs/java/java-refactoring>.
+
+### Trois points d'entrée
+
+| Accès | Quoi | Quand |
+|---|---|---|
+| **💡 ampoule jaune** (ou `Ctrl+.` / `Cmd+.`) | Quick Fix + Refactor + Source Action **contextuels** à la position du curseur ou à la sélection | Pour découvrir ce que l'IDE propose à un endroit précis |
+| **Clic droit → `Refactor...`** | Liste filtrée aux refactorings applicables à la sélection | Quand on sait qu'on veut refactorer |
+| **Clic droit → `Source Action...`** | Génération de code (constructeurs, toString, getters, override...) | Pour créer les stubs nécessaires avant de refactorer |
+
+### Refactorings que vous utiliserez dans ce TP
+
+| Refactoring VS Code | Raccourci / accès | Utilisé en |
+|---|---|---|
+| **Extract to method** | Sélection + `Ctrl+.` → *Extract to method* | Ex1 |
+| **Extract to constant** | Sélection du littéral + `Ctrl+.` → *Extract to constant* | Ex2 |
+| **Extract to variable / field** | Sélection + `Ctrl+.` → *Extract to variable* ou *Extract to field* | Ex3 (promouvoir un champ avant de le déplacer) |
+| **Rename** | `F2` sur un identifiant | Partout (renommer méthodes/variables/classes extraites) |
+| **Move** | Clic droit sur une méthode/classe → *Refactor...* → *Move...* | Ex3 (déplacer les membres vers la classe extraite), Ex4 |
+| **Override / Implement Methods** | `Ctrl+.` ou *Source Action...* dans une classe qui hérite | Ex4 (générer `faireDuBruit()` dans chaque sous-classe) |
+| **Generate constructor / toString / equals** | *Source Action...* | Ex4, Ex5 (si vous en créez) |
+| **Inline method / variable / constant** | Curseur sur la cible + `Ctrl+.` → *Inline...* | Ex6 (si un extract s'avère trop granulaire) |
+| **Organize Imports** | `Shift+Alt+O` | Après chaque refactoring qui ajoute/retire des classes |
+
+### Bonne pratique
+
+1. **Mettez-vous en sélection avant de demander une action**. Les refactorings agissent sur la sélection.
+2. **Laissez l'IDE renommer pour vous** : F2 sur un nom propage partout (y compris dans les Javadoc et les tests). Ne faites jamais un rechercher-remplacer manuel pour un renommage.
+3. **Entre deux refactorings : relancez les tests** (`./mvnw test`). Un refactoring IDE a des préconditions que l'IDE vérifie, mais lui ne connaît pas votre contrat métier - les tests oui.
+4. **Quand l'IDE refuse un refactoring**, lisez le message : c'est presque toujours un vrai problème (sélection ambiguë, dépendance circulaire, nom déjà pris).
+
+---
+
 ## Exercice 1 - Facture (★) - Extract Method
 
 ### Smell à corriger
@@ -300,6 +335,17 @@ Les constantes métier (`TAUX_TVA`, `SEUIL_REMISE`, `TAUX_REMISE`) sont **déjà
 ### Refactoring à appliquer
 
 **Extract Method** : extraire trois méthodes privées `sommeHT(Article[])`, `appliquerTVA(double)`, `appliquerRemise(double)`. Après refactoring, `calculerTotal` doit se réduire à une composition de trois appels.
+
+### Outillage VS Code
+
+Pour chaque bloc à extraire :
+
+1. **Sélectionnez** les lignes qui forment le bloc (par exemple les 4 lignes de la boucle sur `articles`).
+2. `Ctrl+.` (ou `Cmd+.` sur Mac), puis **Extract to method**.
+3. VS Code vous propose un nom par défaut (`extracted`) : tapez directement `sommeHT` et validez. L'IDE crée la méthode privée, replace le bloc par un appel, et laisse votre curseur sur le nom pour un rename éventuel.
+4. Relancez les tests (`./mvnw test`). Verts ? Commitez. Répétez pour les deux autres méthodes.
+
+Si après une extraction l'IDE a choisi des paramètres inattendus (par exemple un `double` qui aurait pu rester local), utilisez `F2` sur le nom de la méthode pour le corriger, et `Ctrl+.` sur un paramètre inutile → **Inline variable** pour le supprimer proprement.
 
 ### Tests (5 caractérisation + 4 structure)
 
@@ -332,6 +378,17 @@ Les 5 tests de caractérisation sont actifs dès le début et doivent rester ver
 
 Ce refactoring n'extrait pas de méthode : il isole uniquement les constantes nommées.
 
+### Outillage VS Code
+
+Pour chaque littéral numérique à extraire :
+
+1. **Double-cliquez** sur le littéral (ex : `1.20`) pour le sélectionner, ou positionnez simplement le curseur dedans.
+2. `Ctrl+.` (ou `Cmd+.`), puis **Extract to constant**. L'IDE crée un `private static final double` en tête de classe et remplace **toutes** les occurrences du littéral par le nom.
+3. Tapez directement le nom attendu (ex : `TAUX_TVA`) ; le curseur est déjà positionné sur l'identifiant pour ça.
+4. Relancez les tests, commitez, passez à la constante suivante.
+
+> 💡 Si vous voulez inspecter ce que l'IDE a fait avant de commiter, `Ctrl+,` vous ouvre la vue Problèmes, mais surtout `git diff` dans le terminal vous montre les modifications - utile pour vérifier que l'IDE n'a pas aussi remplacé un `1.20` qui aurait une autre signification ailleurs.
+
 ### Tests (8 caractérisation + 5 structure)
 
 Les 8 tests de caractérisation décrivent chaque branche du comportement (sous/sur les seuils, fidèle / non fidèle). Les 5 tests de structure vérifient par réflexion que chaque constante a le nom et la valeur attendus ; activez-les au fil des extractions.
@@ -359,6 +416,16 @@ C'est typique d'un **Divergent Change** : le jour où l'on veut changer l'affich
 2. Dans `Menu`, remplacez le champ liste par un champ `Historique`, redirigez `choisir` et `afficherHistorique` vers ce champ. Les tests de caractérisation doivent rester verts à chaque étape.
 3. Activez les tests de structure au fur et à mesure.
 
+### Outillage VS Code
+
+VS Code ne fournit pas un « Extract Class » clé en main pour Java (contrairement à IntelliJ). La procédure combine plusieurs refactorings atomiques :
+
+1. **Créer la nouvelle classe** : clic droit sur le paquet `exercice3` dans l'explorateur → **New Java Class** → `Historique`.
+2. **Déplacer les méthodes** : dans `Menu.java`, placez le curseur sur `afficherHistorique`, puis `Ctrl+.` → **Move...** → choisissez `Historique`. L'IDE déplace la méthode et met à jour les appelants.
+3. **Pour le champ `historique` et la constante `TAILLE_MAX_HISTORIQUE`** : VS Code ne propose pas *Move field* directement. Coupez-collez manuellement dans `Historique`, puis utilisez `F2` (Rename) si vous voulez renommer. Compensez en remplaçant dans `Menu` le champ par un `private final Historique historique = new Historique();`.
+4. **Déplacer la logique d'enregistrement** : dans `Menu.choisir`, sélectionnez les 3 lignes qui ajoutent à l'historique et rognent à 10, puis `Ctrl+.` → **Extract to method**. Nommez `enregistrerChoix`. Une fois la méthode extraite, `Ctrl+.` dessus → **Move...** vers `Historique`, et renommez `enregistrer(String)` par `F2`.
+5. **Relancez les tests après chaque étape**. Les tests de caractérisation doivent rester verts ; si un casse, annulez le dernier refactoring.
+
 ### Tests (7 caractérisation + 3 structure)
 
 Structure à activer progressivement :
@@ -381,6 +448,18 @@ Structure à activer progressivement :
 
 Pour conserver la compatibilité avec les appelants existants qui font `new Animal("Rex", "chien")`, introduisez une méthode statique de fabrique : `Animal.creer(String type, String nom)` qui retourne la bonne sous-classe.
 
+### Outillage VS Code
+
+Ce refactoring n'a pas d'action « tout-en-un » dans VS Code ; on combine plusieurs gestes IDE :
+
+1. **Rendre `Animal` abstraite** : éditez manuellement `public class Animal` → `public abstract class Animal` et ajoutez `abstract` devant `public String faireDuBruit()`. VS Code souligne immédiatement chaque instanciation directe qu'il faut remplacer par la fabrique.
+2. **Créer une sous-classe** : clic droit sur le paquet `exercice4` → **New Java Class** → `Chien`. Dans la classe, tapez `extends Animal`. L'IDE souligne la classe parce qu'il manque l'implémentation de la méthode abstraite.
+3. **Implémenter la méthode abstraite** : curseur sur le nom de `Chien`, `Ctrl+.` → **Add unimplemented methods**. L'IDE génère `faireDuBruit()` avec le bon squelette ; il ne reste qu'à écrire `return "Wouaf"`.
+4. Répétez pour `Chat`, `Vache`, `Canard`.
+5. **Copier le corps correspondant du switch** dans chaque sous-classe, puis **supprimer le switch** de `Animal` (maintenant abstraite).
+6. **Pour la fabrique** : dans `Animal`, tapez `public static Animal creer(String type, String nom) {` puis un switch moderne ; les `new Chien(nom)` etc. se complètent automatiquement.
+7. Relancez les tests après chaque étape. Verts ? Commit.
+
 ### Tests (5 caractérisation + 5 structure)
 
 Structure à activer progressivement :
@@ -402,6 +481,13 @@ Structure à activer progressivement :
 ### Refactoring à appliquer
 
 **Introduce Parameter Object**. Créer un record `MessageEmail(String destinataire, String expediteur, String sujet, String corps, boolean important, int priorite, String[] piecesJointes)`. Créer une nouvelle méthode `envoyer(MessageEmail message)` qui délègue à l'ancienne (pour conserver la compatibilité, temporairement). Une fois la nouvelle méthode utilisée partout, on peut supprimer l'ancienne.
+
+### Outillage VS Code
+
+1. **Créer le record** : clic droit sur `exercice5` → **New Java Class** → type `Record`, nom `MessageEmail`. VS Code crée le squelette `public record MessageEmail() {}`, complétez la liste des 7 composants. Pas de constructeur, pas de getters à écrire : le record en génère tout.
+2. **Créer la nouvelle méthode `envoyer(MessageEmail)`** : positionnez le curseur dans `ServiceNotification`, après l'ancienne méthode. Écrivez la signature `public String envoyer(MessageEmail m) {`. Dans le corps, tapez `return envoyer(m.` puis `Ctrl+Space` : VS Code liste les composants du record, ce qui facilite la délégation.
+3. **Mettre à jour les appelants** : utilisez **Find All References** (clic droit sur `envoyer` ancienne version → *Find All References*, ou `Shift+F12`) pour lister toutes les utilisations de la méthode à 7 paramètres. Remplacez chaque appel site par le nouveau constructeur du record.
+4. **Supprimer l'ancienne méthode** une fois plus aucun appelant : l'IDE signale immédiatement si un appelant subsiste.
 
 ### Tests (4 caractérisation + 4 structure)
 
@@ -450,15 +536,30 @@ La classe `Item` ne peut **pas** être modifiée (signature figée par la direct
 
 **Gardez les 13 tests de caractérisation verts à chaque étape.** Si un test casse, revenez en arrière. Commit après chaque refactoring vert. Après votre refactoring, l'ajout du Conjured doit tenir en quelques lignes.
 
+### Outillage VS Code
+
+Ce kata combine toutes les techniques vues dans les exercices précédents. Voici les actions VS Code les plus utiles à cette étape :
+
+- **Extract to method** (`Ctrl+.`) : pour extraire une branche du `if/else if` en une méthode par type (`updateNormal`, `updateBrie`...).
+- **Extract to constant** (`Ctrl+.`) : les chiffres `0`, `1`, `2`, `50`, `80`, `6`, `11` dans `updateQuality` sont des magic numbers classiques (`QUALITE_MIN`, `QUALITE_MAX_DEFAUT`, `QUALITE_MAX_SULFURAS`, `SEUIL_BACKSTAGE_X2`, `SEUIL_BACKSTAGE_X3`).
+- **Rename** (`F2`) : renommez les méthodes/variables vers des noms métier (pas `u1`, `u2`, mais `jourSuivant`, `estSulfuras`...).
+- **Move...** (clic droit → *Refactor...* → *Move...*) : si vous créez `UpdaterBrie` dans un sous-paquet, l'IDE met à jour les imports.
+- **Inline Method** (`Ctrl+.`) : si vous avez extrait une méthode qui ne sert qu'à une chose, l'Inline vous permet de faire marche arrière sans couper-coller.
+- **Find All References** (`Shift+F12`) : pour vérifier que `Item` n'est jamais modifié ailleurs que dans les deux constructeurs autorisés.
+- **Organize Imports** (`Shift+Alt+O`) : à chaque fois qu'une classe est créée/déplacée, pour éviter les imports orphelins.
+
+Règle pratique : à la fin de chaque étape de refactoring, **F5** lance Maven en une passe dans le terminal intégré, ce qui est plus rapide que de rouvrir le terminal manuellement.
+
 ---
 
 ## Ressources complémentaires
 
+- [VS Code - Java Refactoring (doc officielle)](https://code.visualstudio.com/docs/java/java-refactoring)
+- [Refactoring (Martin Fowler)](https://refactoring.com)
 - [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/)
 - [AssertJ Core Documentation](https://assertj.github.io/doc/)
 - [ApprovalTests Java](https://github.com/approvals/ApprovalTests.Java)
 - [Mockito Documentation](https://site.mockito.org)
-- [Refactoring (Martin Fowler)](https://refactoring.com)
 
 ---
 
