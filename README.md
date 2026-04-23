@@ -25,9 +25,9 @@ Les exercices de ce TP sont organisés en progression. Cette progression suit la
 
 | Niveau Bloom | Exercices | Vous serez capable de... | Compétence BUT |
 |---|---|---|---|
-| **Comprendre** | 1 et 2 | Identifier les <b>code smells</b> classiques (Long Method, Magic Number, Switch Statement, Long Parameter List) et nommer le refactoring qui les corrige | AC11.02 |
-| **Appliquer** | 1, 2 et 3 | Appliquer <b>Replace Magic Number</b>, <b>Extract Method</b>, <b>Replace Conditional with Polymorphism</b> et <b>Introduce Parameter Object</b> en gardant les tests verts à chaque étape | AC11.02, AC11.03 |
-| **Analyser / Créer** | 4 | Refactorer fearlessly un code legacy réel (Gilded Rose) en s'appuyant sur une couverture de tests de caractérisation que vous aurez complétée | AC11.02, AC11.03 |
+| **Comprendre** | 1 à 5 | Identifier les <b>code smells</b> classiques (Long Method, Magic Number, Divergent Change / God Class, Switch Statement, Long Parameter List) et nommer le refactoring qui les corrige | AC11.02 |
+| **Appliquer** | 1 à 5 | Appliquer <b>Extract Method</b>, <b>Replace Magic Number</b>, <b>Extract Class</b>, <b>Replace Conditional with Polymorphism</b> et <b>Introduce Parameter Object</b> en gardant les tests verts à chaque étape | AC11.02, AC11.03 |
+| **Analyser / Créer** | 6 | Refactorer fearlessly un code legacy réel (Gilded Rose) en s'appuyant sur une couverture de tests de caractérisation que vous aurez complétée | AC11.02, AC11.03 |
 
 **Tout au long du TP** vous développez un réflexe professionnel essentiel : <b>ne pas casser ce qui marche</b>. La discipline "rouge = je ne commit pas, vert = je commit souvent" vous suit partout.
 
@@ -289,33 +289,87 @@ Le TP est découpé en plusieurs **exercices** à faire dans l'ordre. Chaque exe
 
 ---
 
-## Exercice 1 - Facture (★★) - Long Method + Magic Numbers
+## Exercice 1 - Facture (★) - Extract Method
 
-### Smells à corriger
+### Smell à corriger
 
-Ouvrez `Facture.java` et observez. Vous verrez :
+Ouvrez `Facture.java`. Vous verrez un **Long Method** : `calculerTotal()` fait trois choses à la suite (somme HT, application TVA, application remise) en une méthode de 10 lignes. Les commentaires décrivent chaque étape - c'est un bon signe que chaque étape mérite son propre nom de méthode.
 
-- **Long Method** : `calculerTotal()` fait trois choses (somme HT, TVA, remise) en une méthode de 10 lignes. Les commentaires décrivent chaque étape - c'est un bon signe que chaque étape mérite son propre nom de méthode.
-- **Magic Number** : les valeurs `1.20`, `100`, `0.9` sont codées en dur. Elles sont expliquées par les commentaires, mais un commentaire est une documentation qui <em>ne sera pas</em> relue systématiquement.
+Les constantes métier (`TAUX_TVA`, `SEUIL_REMISE`, `TAUX_REMISE`) sont **déjà nommées** : cet exercice ne concerne que l'Extract Method. Le refactoring Replace Magic Number est l'objet de l'exercice 2 sur un autre exemple.
 
-### Refactorings à appliquer
+### Refactoring à appliquer
 
-1. **Replace Magic Number with Symbolic Constant** : extraire trois `private static final double` avec des noms parlants (`TAUX_TVA`, `SEUIL_REMISE`, `TAUX_REMISE`).
-2. **Extract Method** : extraire trois méthodes privées `sommeHT`, `appliquerTVA`, `appliquerRemise`. Après refactoring, `calculerTotal` doit se réduire à une composition de trois appels.
+**Extract Method** : extraire trois méthodes privées `sommeHT(Article[])`, `appliquerTVA(double)`, `appliquerRemise(double)`. Après refactoring, `calculerTotal` doit se réduire à une composition de trois appels.
 
-### Tests (5 caractérisation + 5 structure)
+### Tests (5 caractérisation + 4 structure)
 
-Les 5 tests de caractérisation sont actifs dès le début - ils passent sur le code smelly et doivent rester verts. Les 5 tests de structure sont `@Disabled` ; activez-les au fur et à mesure :
+Les 5 tests de caractérisation sont actifs dès le début et doivent rester verts. Les 4 tests de structure sont `@Disabled` ; activez-les au fur et à mesure :
 
-1. `constantesSymboliquesExtraites` - après l'extraction des constantes
-2. `methodeSommeHTExtraite` - après la première extraction de méthode
-3. `methodeAppliquerTVAExtraite` - après la deuxième extraction
-4. `methodeAppliquerRemiseExtraite` - après la troisième extraction
-5. `methodeCalculerTotalCourte` - quand `calculerTotal` est réduit à sa composition finale
+1. `methodeSommeHTExtraite` - après la première extraction
+2. `methodeAppliquerTVAExtraite` - après la deuxième extraction
+3. `methodeAppliquerRemiseExtraite` - après la troisième extraction
+4. `methodeCalculerTotalCourte` - quand `calculerTotal` est réduit à sa composition finale
 
 ---
 
-## Exercice 2 - Animal (★★★) - Replace Conditional with Polymorphism
+## Exercice 2 - CalculPrix (★★) - Replace Magic Number
+
+### Smell à corriger
+
+`CalculPrix.calculerPrixFinal(double, boolean)` applique trois règles métier (TVA 20 %, remise fidélité au-delà de 500 €, frais de port 8 € en dessous de 50 €), mais les cinq valeurs numériques sont codées en dur : `1.20`, `500.0`, `0.95`, `50.0`, `8.0`. Un·e lecteur·ice doit deviner leur sens. Pire : le jour où le taux de TVA change, il faut traquer toutes les occurrences.
+
+### Refactoring à appliquer
+
+**Replace Magic Number with Symbolic Constant**. Extraire cinq `private static final double` avec des noms parlants :
+
+| Valeur | Nom | Sens métier |
+|---|---|---|
+| 1.20 | `TAUX_TVA` | TVA à 20 % |
+| 500.0 | `SEUIL_REMISE_FIDELITE` | Seuil au-delà duquel la remise s'applique |
+| 0.95 | `TAUX_REMISE_FIDELITE` | Remise fidèle (5 % = multiplier par 0.95) |
+| 50.0 | `SEUIL_FRAIS_PORT_OFFERT` | Seuil au-dessus duquel le port est offert |
+| 8.0 | `MONTANT_FRAIS_PORT` | Frais pour les petites commandes |
+
+Ce refactoring n'extrait pas de méthode : il isole uniquement les constantes nommées.
+
+### Tests (8 caractérisation + 5 structure)
+
+Les 8 tests de caractérisation décrivent chaque branche du comportement (sous/sur les seuils, fidèle / non fidèle). Les 5 tests de structure vérifient par réflexion que chaque constante a le nom et la valeur attendus ; activez-les au fil des extractions.
+
+---
+
+## Exercice 3 - Menu (★★★) - Extract Class
+
+### Smell à corriger
+
+`Menu` fait **deux choses** qui n'ont rien à voir entre elles :
+
+1. gérer un menu d'options (enregistrer, afficher, exécuter un choix)
+2. mémoriser l'historique des 10 derniers choix (enregistrer, rogner à 10, afficher)
+
+C'est typique d'un **Divergent Change** : le jour où l'on veut changer l'affichage du menu, on touche `Menu`. Le jour où l'on veut changer la taille de l'historique (ou son format), on touche aussi `Menu`. Deux axes de changement qui devraient vivre dans deux classes distinctes.
+
+### Refactoring à appliquer
+
+**Extract Class**. Créer une classe `Historique` dans le même paquet, qui encapsule la liste, la taille max, et trois méthodes `enregistrer(String)` / `asList()` / `afficher()`. Dans `Menu`, remplacer le champ `List<String> historique` par un champ `Historique historique` et déléguer. La **signature publique de `Menu` ne change pas** (les tests de caractérisation vérifient le comportement observable).
+
+### Ordre de travail recommandé
+
+1. Écrivez d'abord la classe `Historique` avec les trois méthodes attendues.
+2. Dans `Menu`, remplacez le champ liste par un champ `Historique`, redirigez `choisir` et `afficherHistorique` vers ce champ. Les tests de caractérisation doivent rester verts à chaque étape.
+3. Activez les tests de structure au fur et à mesure.
+
+### Tests (7 caractérisation + 3 structure)
+
+Structure à activer progressivement :
+
+1. `classeHistoriqueExiste` - après avoir créé `Historique`
+2. `classeHistoriqueALesTroisMethodes` - après avoir ajouté `enregistrer`, `asList`, `afficher`
+3. `menuUtiliseUnChampDeTypeHistorique` - après avoir branché la délégation dans `Menu`
+
+---
+
+## Exercice 4 - Animal (★★★) - Replace Conditional with Polymorphism
 
 ### Smells à corriger
 
@@ -339,7 +393,7 @@ Structure à activer progressivement :
 
 ---
 
-## Exercice 3 - ServiceNotification (★★) - Introduce Parameter Object
+## Exercice 5 - ServiceNotification (★★) - Introduce Parameter Object
 
 ### Smell à corriger
 
@@ -360,7 +414,7 @@ Structure à activer progressivement :
 
 ---
 
-## Exercice 4 - Gilded Rose (★★★★★) - Capstone
+## Exercice 6 - Gilded Rose (★★★★★) - Capstone
 
 ### Contexte (le kata original d'Emily Bache)
 

@@ -1,4 +1,4 @@
-package fr.univ_amu.iut.exercice2;
+package fr.univ_amu.iut.exercice4;
 
 /**
  * Exercice 2 - Replace Conditional with Polymorphism.

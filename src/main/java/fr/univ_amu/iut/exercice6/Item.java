@@ -1,4 +1,4 @@
-package fr.univ_amu.iut.exercice4;
+package fr.univ_amu.iut.exercice6;
 
 /**
  * Article d'inventaire de la Gilded Rose.

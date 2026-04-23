@@ -1,4 +1,4 @@
-package fr.univ_amu.iut.exercice2;
+package fr.univ_amu.iut.exercice4;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

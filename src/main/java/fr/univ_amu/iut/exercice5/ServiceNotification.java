@@ -1,4 +1,4 @@
-package fr.univ_amu.iut.exercice3;
+package fr.univ_amu.iut.exercice5;
 
 /**
  * Exercice 3 - Introduce Parameter Object.

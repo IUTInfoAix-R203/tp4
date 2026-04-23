@@ -3,13 +3,12 @@ package fr.univ_amu.iut.exercice1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests de l'exercice 1 : Facture.
+ * Tests de l'exercice 1 : Facture (Extract Method).
  *
  * <p>Les tests sont rangés en deux catégories :
  *
@@ -17,9 +16,9 @@ import org.junit.jupiter.api.Test;
  *   <li>Tests de <b>caractérisation</b> : ils passent <em>dès le début</em> sur le code smelly et
  *       permettent de refactorer sans crainte. C'est le filet de sécurité classique avant toute
  *       transformation de code existant.
- *   <li>Tests de <b>structure</b> : ils vérifient par <em>réflexion</em> que les refactorings ont
- *       bien eu lieu (constantes nommées, méthodes extraites). Ils échouent tant que le refactoring
- *       n'est pas fait. Activez-les au fur et à mesure de vos transformations.
+ *   <li>Tests de <b>structure</b> : ils vérifient par <em>réflexion</em> que les trois méthodes ont
+ *       bien été extraites. Ils échouent tant que le refactoring n'est pas fait. Activez-les au fur
+ *       et à mesure de vos transformations.
  * </ul>
  *
  * <p>Règle d'or : <b>ne désactivez jamais un test de caractérisation</b>. S'il casse, c'est que
@@ -73,16 +72,6 @@ class FactureTest {
   // Tests de structure (à activer au fur et à mesure du refactoring)
   // =========================================================================
 
-  @Disabled("Activer après Replace Magic Number (TAUX_TVA, SEUIL_REMISE, TAUX_REMISE)")
-  @Test
-  void constantesSymboliquesExtraites() throws Exception {
-    // Après Replace Magic Number, on doit trouver 3 champs private static final double :
-    //   TAUX_TVA, SEUIL_REMISE, TAUX_REMISE
-    assertThat(constanteDouble("TAUX_TVA")).isEqualTo(1.20, within(0.001));
-    assertThat(constanteDouble("SEUIL_REMISE")).isEqualTo(100.0, within(0.001));
-    assertThat(constanteDouble("TAUX_REMISE")).isEqualTo(0.9, within(0.001));
-  }
-
   @Disabled("Activer après avoir extrait la méthode sommeHT")
   @Test
   void methodeSommeHTExtraite() throws Exception {
@@ -120,18 +109,5 @@ class FactureTest {
     // Ici on vérifie juste que calculerTotal reste accessible.
     Method m = Facture.class.getDeclaredMethod("calculerTotal", Article[].class);
     assertThat(m.getModifiers() & java.lang.reflect.Modifier.PUBLIC).isNotZero();
-  }
-
-  // ------------------------------------------------------------------------
-  //  Helpers
-  // ------------------------------------------------------------------------
-
-  private static double constanteDouble(String nom) throws Exception {
-    Field f = Facture.class.getDeclaredField(nom);
-    f.setAccessible(true);
-    int m = f.getModifiers();
-    assertThat(java.lang.reflect.Modifier.isStatic(m)).as("%s doit être static", nom).isTrue();
-    assertThat(java.lang.reflect.Modifier.isFinal(m)).as("%s doit être final", nom).isTrue();
-    return f.getDouble(null);
   }
 }

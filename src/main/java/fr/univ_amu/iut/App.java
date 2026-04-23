@@ -2,19 +2,20 @@ package fr.univ_amu.iut;
 
 import fr.univ_amu.iut.exercice1.Article;
 import fr.univ_amu.iut.exercice1.Facture;
-import fr.univ_amu.iut.exercice2.Animal;
-import fr.univ_amu.iut.exercice3.ServiceNotification;
-import fr.univ_amu.iut.exercice4.GildedRose;
-import fr.univ_amu.iut.exercice4.Item;
+import fr.univ_amu.iut.exercice2.CalculPrix;
+import fr.univ_amu.iut.exercice3.Menu;
+import fr.univ_amu.iut.exercice4.Animal;
+import fr.univ_amu.iut.exercice5.ServiceNotification;
+import fr.univ_amu.iut.exercice6.GildedRose;
+import fr.univ_amu.iut.exercice6.Item;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Scanner;
 
 /** Lanceur console du TP4 - Refactoring. */
 public class App {
 
   public static void main(String[] args) {
-    Map<String, Runnable> exercices = construireMenu();
+    java.util.Map<String, Runnable> exercices = construireMenu();
     afficherMenu(exercices);
     if (exercices.isEmpty()) return;
     try (Scanner scanner = new Scanner(System.in)) {
@@ -27,16 +28,18 @@ public class App {
     }
   }
 
-  static Map<String, Runnable> construireMenu() {
-    Map<String, Runnable> exercices = new LinkedHashMap<>();
-    exercices.put("Exercice 1 - Facture (Long Method + Magic Numbers)", App::demoFacture);
-    exercices.put("Exercice 2 - Animal (Replace Conditional with Polymorphism)", App::demoAnimal);
-    exercices.put("Exercice 3 - ServiceNotification (Introduce Parameter Object)", App::demoEmail);
-    exercices.put("Exercice 4 - Gilded Rose (capstone)", App::demoGildedRose);
+  static java.util.Map<String, Runnable> construireMenu() {
+    java.util.Map<String, Runnable> exercices = new LinkedHashMap<>();
+    exercices.put("Exercice 1 - Facture (Extract Method)", App::demoFacture);
+    exercices.put("Exercice 2 - CalculPrix (Replace Magic Number)", App::demoCalculPrix);
+    exercices.put("Exercice 3 - Menu (Extract Class)", App::demoMenu);
+    exercices.put("Exercice 4 - Animal (Replace Conditional with Polymorphism)", App::demoAnimal);
+    exercices.put("Exercice 5 - ServiceNotification (Introduce Parameter Object)", App::demoEmail);
+    exercices.put("Exercice 6 - Gilded Rose (capstone)", App::demoGildedRose);
     return exercices;
   }
 
-  static void afficherMenu(Map<String, Runnable> exercices) {
+  static void afficherMenu(java.util.Map<String, Runnable> exercices) {
     System.out.println("=== TP4 - Refactoring - IUT Aix-Marseille ===");
     System.out.println();
     int i = 1;
@@ -45,7 +48,7 @@ public class App {
     }
   }
 
-  static void lancerExercice(Map<String, Runnable> exercices, int choix) {
+  static void lancerExercice(java.util.Map<String, Runnable> exercices, int choix) {
     if (choix < 1 || choix > exercices.size()) {
       System.out.println("Choix hors des bornes.");
       return;
@@ -61,6 +64,27 @@ public class App {
   private static void demoFacture() {
     Article[] articles = {new Article("pain", 2.0, 3), new Article("fromage", 8.0, 2)};
     System.out.printf("Total TTC : %.2f EUR%n", new Facture().calculerTotal(articles));
+  }
+
+  private static void demoCalculPrix() {
+    CalculPrix c = new CalculPrix();
+    System.out.printf("30 HT non fidele : %.2f EUR%n", c.calculerPrixFinal(30.0, false));
+    System.out.printf("500 HT non fidele : %.2f EUR%n", c.calculerPrixFinal(500.0, false));
+    System.out.printf("500 HT fidele : %.2f EUR%n", c.calculerPrixFinal(500.0, true));
+    System.out.printf("1000 HT fidele : %.2f EUR%n", c.calculerPrixFinal(1000.0, true));
+  }
+
+  private static void demoMenu() {
+    Menu m = new Menu();
+    m.ajouterOption("Nouveau", () -> System.out.println("  >> Nouveau"));
+    m.ajouterOption("Ouvrir", () -> System.out.println("  >> Ouvrir"));
+    m.ajouterOption("Quitter", () -> System.out.println("  >> Quitter"));
+    System.out.print(m.afficher());
+    System.out.println("(simulation : choix 1, 3, 1)");
+    m.choisir(1);
+    m.choisir(3);
+    m.choisir(1);
+    System.out.print(m.afficherHistorique());
   }
 
   private static void demoAnimal() {

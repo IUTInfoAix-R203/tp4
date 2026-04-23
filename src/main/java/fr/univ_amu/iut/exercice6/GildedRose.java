@@ -1,4 +1,4 @@
-package fr.univ_amu.iut.exercice4;
+package fr.univ_amu.iut.exercice6;
 
 /**
  * Exercice 4 - Gilded Rose (capstone).

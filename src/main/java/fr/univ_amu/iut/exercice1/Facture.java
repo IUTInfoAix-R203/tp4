@@ -1,37 +1,33 @@
 package fr.univ_amu.iut.exercice1;
 
 /**
- * Exercice 1 - Long Method + Magic Numbers.
+ * Exercice 1 - Long Method : Extract Method.
  *
- * <p>Cette classe fonctionne : les tests de caractérisation la valident. Mais elle pue. Trois
- * choses qui clochent au premier coup d'œil :
+ * <p>Cette classe fonctionne : les tests de caractérisation la valident. Mais {@link
+ * #calculerTotal} est un <b>Long Method</b> : elle fait trois choses à la suite (calcul HT,
+ * application TVA, application remise). On veut que chacune devienne une méthode privée avec un nom
+ * qui dit ce qu'elle fait, et que {@code calculerTotal} se lise comme un résumé de haut niveau.
  *
- * <ol>
- *   <li>{@link #calculerTotal} fait tout en une seule méthode (Long Method smell) : calcul HT,
- *       application TVA, application remise
- *   <li>Les valeurs {@code 1.20}, {@code 100}, {@code 0.9} sont des nombres magiques (Magic Number
- *       smell) : on ne sait pas à quoi elles correspondent sans lire le code
- *   <li>Les commentaires décrivent ce que fait le code ligne à ligne, signe que les noms ne sont
- *       pas suffisamment parlants
- * </ol>
+ * <p>Les constantes métier ({@code TAUX_TVA}, {@code SEUIL_REMISE}, {@code TAUX_REMISE}) sont déjà
+ * nommées : cet exercice ne concerne <em>que</em> Extract Method. Le refactoring Replace Magic
+ * Number fera l'objet de l'exercice 2 sur un autre exemple.
  *
- * <p>Votre mission : refactorer cette classe pour qu'elle devienne <b>lisible sans commentaire</b>
- * et <b>maintenable</b>. Les tests doivent rester verts à chaque étape.
+ * <p>Refactoring attendu :
  *
- * <p>Refactorings attendus (dans cet ordre recommandé) :
- *
- * <ol>
- *   <li><b>Replace Magic Number with Symbolic Constant</b> : extraire {@code TAUX_TVA}, {@code
- *       SEUIL_REMISE}, {@code TAUX_REMISE} comme {@code private static final double}
- *   <li><b>Extract Method</b> : extraire {@code sommeHT}, {@code appliquerTVA}, {@code
- *       appliquerRemise} comme méthodes privées. {@code calculerTotal} doit se réduire à une
- *       composition de 3 appels
- * </ol>
+ * <ul>
+ *   <li><b>Extract Method</b> : extraire {@code sommeHT(Article[])}, {@code appliquerTVA(double)},
+ *       {@code appliquerRemise(double)} comme méthodes privées. Le corps de {@code calculerTotal}
+ *       doit se réduire à la composition de ces trois appels.
+ * </ul>
  */
 public class Facture {
 
+  private static final double TAUX_TVA = 1.20;
+  private static final double SEUIL_REMISE = 100.0;
+  private static final double TAUX_REMISE = 0.9;
+
   /**
-   * Calcule le montant total TTC d'une facture, avec remise de 10 % au-delà de 100 € HT + TVA.
+   * Calcule le montant total TTC d'une facture, avec remise au-delà du seuil.
    *
    * @param articles liste des articles de la facture
    * @return montant total TTC, remise déduite le cas échéant
@@ -43,10 +39,10 @@ public class Facture {
       total += a.prixUnitaireHT() * a.quantite();
     }
     // TVA
-    total = total * 1.20;
-    // remise au-delà de 100
-    if (total > 100) {
-      total = total * 0.9;
+    total = total * TAUX_TVA;
+    // remise au-delà du seuil
+    if (total > SEUIL_REMISE) {
+      total = total * TAUX_REMISE;
     }
     return total;
   }
