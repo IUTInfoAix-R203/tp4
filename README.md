@@ -2,12 +2,11 @@
 
 ### IUT d'Aix-Marseille - Département Informatique Aix-en-Provence
 
-* **Ressource:** [R2.03](https://cache.media.enseignementsup-recherche.gouv.fr/file/SPE4-MESRI-17-6-2021/35/5/Annexe_17_INFO_BUT_annee_1_1411355.pdf)
+* **Ressource :** [Syllabus R2.03](https://github.com/IUTInfoAix-R203/syllabus) (compétences, calendrier, évaluations, ressources détaillées)
 
-* **Responsable :** [Sébastien Nedjar](mailto:sebastien.nedjar@univ-amu.fr)
+* **Équipe pédagogique :**
 
-* **Enseignantes :**
-
+  * [Sébastien Nedjar](mailto:sebastien.nedjar@univ-amu.fr) - responsable du module
   * [Sophie Nabitz](mailto:sophie.nabitz@univ-avignon.fr)
   * [Leïla Sakli Miled](mailto:leila.SAKLI@univ-amu.fr)
 
