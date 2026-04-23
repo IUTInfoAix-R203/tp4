@@ -20,16 +20,33 @@
 #
 # Convention : un sous-paquet `exerciceN` = un exercice.
 #
-# Répartition sur un total de 1000 :
-#   - 100 pts compilation
-#   - 900 pts équirépartis entre les exercices détectés (les
-#     $ex_remainder premiers exercices prennent +1 pt pour absorber
-#     le reste, pas de "winner-takes-all").
-#   - À l'intérieur d'un exercice, les points sont équirépartis
-#     entre ses méthodes de test (même règle : les $m_remainder
-#     premières absorbent +1). Le total sur 1000 offre assez de
-#     granularité pour qu'aucun test ne vale 0 pt, même sur les
-#     exercices à forte cardinalité de tests.
+# Deux modes de répartition, détectés automatiquement :
+#
+# 1. Mode TDD (défaut) - aucun marqueur /* --student-- */ dans src/.
+#    Répartition sur un total de 1000 :
+#      - 100 pts compilation
+#      - 900 pts équirépartis entre les exercices détectés (les
+#        $ex_remainder premiers exercices prennent +1 pt pour
+#        absorber le reste, pas de "winner-takes-all").
+#      - À l'intérieur d'un exercice, les points sont équirépartis
+#        entre ses méthodes de test (même règle de remainder).
+#      Le total sur 1000 offre assez de granularité pour qu'aucun
+#      test ne vale 0 pt, même sur les exercices à forte cardinalité.
+#
+# 2. Mode refactoring - au moins un marqueur /* --student-- */
+#    présent dans src/ (générateur generate-student.sh le détecte
+#    de la même façon). Répartition 10/10/80 sur un total de 1000 :
+#      - 100 pts compilation (COMPILE_POINTS)
+#      - 100 pts répartis entre TOUS les tests de caractérisation
+#        détectés dans le projet (CARACT_POINTS, filet de sécurité).
+#      - 800 pts répartis entre TOUS les tests de structure détectés
+#        (STRUCTURE_POINTS, débloqués après refactoring).
+#      Cette répartition garantit qu'un projet qui compile avec
+#      juste les caractérisations vertes plafonne à 200/1000
+#      (= 4/20). Les points viennent du refactoring effectivement
+#      réalisé, pas du simple fait que le code smelly fonctionne.
+#      Un test est classé "caract" si son nom (classe ou méthode)
+#      matche le pattern caractérisation, "structure" sinon.
 #
 # Le reporter GitHub Classroom affiche le score brut (ex :
 # "Points 250/1000"). Les READMEs doivent donc documenter la base

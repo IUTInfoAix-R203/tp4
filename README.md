@@ -138,11 +138,11 @@ Puis lancez :
 
 Vous devriez voir un résultat du type :
 ```
-Tests run: X, Failures: 0, Errors: 0, Skipped: X
+Tests run: X, Failures: 0, Errors: 0, Skipped: Y
 BUILD SUCCESS
 ```
 
-Si c'est le cas, tout est prêt. Le seul test actif (`AppTest`) passe, et les tests d'exercices sont en attente (`Skipped`) - c'est normal, ils seront activés au fil de votre progression.
+Si c'est le cas, tout est prêt. Les **tests de caractérisation** (environ 42) sont déjà actifs et **tous verts** : ils capturent le comportement actuel du code smelly et constituent votre filet de sécurité pour refactorer. Les **tests de structure** sont en attente (`Skipped`) : vous les activerez un par un au fur et à mesure de vos refactorings pour prouver que vous avez bien extrait la bonne méthode, la bonne constante, la bonne classe.
 
 ---
 
@@ -153,10 +153,14 @@ Si c'est le cas, tout est prêt. Le seul test actif (`AppTest`) passe, et les te
 L'évaluation de ce TP est **entièrement automatique** : à chaque fois que vous poussez (`push`) votre code sur GitHub, un système d'autograding exécute tous vos tests et calcule un score sur **1000 points**. Ce score est affiché tel quel par le reporter Classroom ; pour le ramener à la note sur 20, divisez par 50 (ex : 850/1000 = 17/20).
 
 - **100 points** sont attribués si le projet **compile** correctement
-- **900 points** sont répartis entre les différents **tests des exercices**, chaque test valant au moins 1 point
-- Un test `@Disabled` (non encore activé) rapporte **0 point** - c'est normal
+- **100 points** sont répartis entre les **tests de caractérisation** (actifs dès le départ, filet de sécurité). Si vous les cassez ou les désactivez pendant votre refactoring, vous perdez ces points
+- **800 points** sont répartis entre les **tests de structure** (`@Disabled` au départ). Vous les activez un par un, au fur et à mesure que vos refactorings produisent les bonnes méthodes, constantes ou classes extraites
+- Un test `@Disabled` (non encore activé) rapporte **0 point** - c'est normal tant que vous n'avez pas appliqué le refactoring correspondant
 - Un test activé et **qui passe** rapporte ses points
 - Un test activé et **qui échoue** rapporte 0 point
+
+> [!IMPORTANT]
+> Le barème 100 / 100 / 800 signifie que **vous ne pouvez pas avoir la moyenne sans refactorer** : un projet qui compile avec tous les tests de caractérisation verts plafonne à 200/1000 (soit 4/20). Les points se gagnent en débloquant les tests de structure.
 
 Votre score augmente progressivement au fil de votre avancement. Il n'y a pas de date limite brutale : chaque push met à jour votre score.
 
@@ -191,9 +195,9 @@ Dans ce projet, Maven est embarqué via un **Maven Wrapper** (`./mvnw`) : un scr
 
 ---
 
-## Workflow de développement
+## Workflow de refactoring
 
-Chaque exercice suit le même cycle. Cette démarche structurée vous aide à travailler de manière **méthodique et professionnelle** : c'est exactement le workflow que vous utiliserez en entreprise.
+Chaque exercice suit le même cycle. Contrairement à un TP TDD où vous écrivez du code pour faire passer un test rouge, en refactoring **les tests de caractérisation sont déjà verts dès le départ** : ils capturent le comportement du code smelly. Votre mission est de transformer ce code sans jamais casser ces tests verts, puis de débloquer progressivement les tests de structure.
 
 **1. Créer une branche pour l'exercice**
 
@@ -201,25 +205,30 @@ Chaque exercice suit le même cycle. Cette démarche structurée vous aide à tr
 git checkout -b exerciceN
 ```
 
-**2. Activer le premier test** - ouvrez le fichier de test correspondant et retirez l'annotation `@Disabled` du premier test.
+**2. Lire le code smelly** en entier, sans rien toucher. Identifier les smells à l'œil (Long Method, Magic Number, God Class, Long Parameter List, switch dispatchant sur un type...).
 
-**3. Vérifier que le test est rouge**
-
-```bash
-./mvnw test
-```
-
-Le test doit échouer - c'est normal et attendu. Le message d'erreur vous indique ce que le test attend.
-
-**4. Implémenter le minimum** pour faire passer ce test au vert. Pas plus que nécessaire.
-
-**5. Vérifier que le test passe**
+**3. Lancer les tests** pour constater que les tests de caractérisation sont verts :
 
 ```bash
 ./mvnw test
 ```
 
-**6. Lancer l'application** pour voir le résultat depuis le menu :
+Les tests de caractérisation **doivent tous être verts** - c'est votre filet de sécurité. Les tests de structure sont `Skipped` (ils attendent votre refactoring).
+
+**4. Appliquer un refactoring à la fois** - une transformation atomique (extraire une méthode, remplacer un nombre magique, extraire une classe...). Privilégiez les refactorings automatiques de VS Code (voir section [Outils de refactoring dans VS Code](#outils-de-refactoring-dans-vs-code)).
+
+**5. Relancer les tests après chaque transformation**
+
+```bash
+./mvnw test
+```
+
+- Si **tous les tests de caractérisation restent verts** -> commit immédiat (`git commit -m "refactor: ..."`).
+- Si **un test de caractérisation casse** -> c'est un bug introduit, pas un refactoring. Reculez (`git restore .`), comprenez, recommencez plus petit.
+
+**6. Activer les tests de structure** progressivement. Quand votre refactoring produit la méthode/constante/classe attendue, retirez le `@Disabled` du test de structure correspondant et vérifiez qu'il passe.
+
+**7. Lancer l'application** pour vérifier visuellement le comportement depuis le menu :
 
 ```bash
 ./mvnw compile exec:java
@@ -227,20 +236,16 @@ Le test doit échouer - c'est normal et attendu. Le message d'erreur vous indiqu
 
 Ou via `Ctrl+Shift+B` dans VS Code.
 
-**7. Recommencer** - activez le test suivant (étapes 2 à 6) jusqu'à ce que tous les tests de l'exercice soient verts.
-
-**8. Finaliser l'exercice** - quand tous les tests passent :
+**8. Finaliser l'exercice** - quand tous les tests (caractérisation + structure) sont verts :
 
 ```bash
-git add .
-git commit -m "feat(exerciceN): termine l'exercice"
 git push -u origin exerciceN
 ```
 
 **9. Créer une Pull Request** pour voir votre travail et recevoir une review automatique :
 
 ```bash
-gh pr create --title "feat(exerciceN): termine l'exercice" --body "Tous les tests passent."
+gh pr create --title "refactor(exerciceN): <refactoring appliqué>" --body "Tests de caractérisation préservés, tests de structure activés."
 ```
 
 Ouvrez la PR dans le navigateur (`gh pr view --web`) pour consulter le diff, les checks CI, le score autograding et les commentaires de la review Copilot.
@@ -255,6 +260,9 @@ Cette commande merge la PR, bascule votre HEAD local sur `main`, `pull` les
 derniers commits et supprime la branche de feature locale et distante.
 
 Votre score sur GitHub Actions augmente à chaque exercice terminé. Vous pouvez maintenant passer à l'exercice suivant en reprenant à l'étape 1.
+
+> [!IMPORTANT]
+> **Ne désactivez jamais un test de caractérisation**. S'il casse pendant votre refactoring, c'est que vous avez changé le comportement - par définition, ce n'est plus un refactoring, c'est un bug. Annulez votre dernière modification et comprenez ce qui s'est passé avant de continuer.
 
 > [!TIP]
 > **Copilot Chat** est là pour vous accompagner à chaque étape. N'hésitez pas à lui poser des questions - il vous guidera sans donner la solution directement.
@@ -272,20 +280,6 @@ Vous avez le droit d'utiliser **Copilot Chat** (panneau latéral dans VS Code) q
 **Conseil pratique** : sur les premiers exercices, n'hésitez pas à demander de l'aide pour vous familiariser avec les concepts et le workflow. Sur les exercices avancés, essayez d'aller le plus loin possible par vous-même avant de solliciter l'assistant. C'est cette progression vers l'autonomie qui vous préparera le mieux aux évaluations.
 
 Le TP est découpé en plusieurs **exercices** à faire dans l'ordre. Chaque exercice vit dans son propre sous-paquet (code et tests en miroir). L'exercice 1 est très guidé pas à pas pour vous familiariser avec l'environnement. À partir de l'exercice 2, une boucle de travail systématique est introduite que vous appliquerez pour tous les exercices suivants.
-
----
-
-## Protocole de refactoring à appliquer à chaque exercice
-
-1. **Lire le code** en entier, sans toucher. Identifier les smells à l'œil.
-2. **Lancer les tests** (`./mvnw test -Dtest='MonTest'`). Ils doivent tous être verts - c'est votre filet de sécurité.
-3. **Créer une branche** : `git checkout -b exoN-refactoring`.
-4. **Appliquer un refactoring à la fois**. Après chaque : relancer les tests. Si vert, commit. Si rouge, reculer et comprendre.
-5. **Activer les tests de structure** un par un, au fur et à mesure de vos transformations. Ils s'activent en retirant `@Disabled`.
-6. Quand tous les tests sont verts : **pousser et ouvrir une PR**.
-
-> [!IMPORTANT]
-> **Ne désactivez jamais un test de caractérisation**. Si un test de caractérisation casse pendant votre refactoring, c'est que vous avez changé le comportement - par définition, ce n'est plus un refactoring, c'est un bug. Annulez votre dernière modification et comprenez ce qui s'est passé.
 
 ---
 
