@@ -292,6 +292,17 @@ if [ "$APPLY" = true ]; then
           "$TP_DIR/.github/workflows/generate-student.yml" \
           "$TP_DIR/.github/workflows/template-sync.yml"
 
+    # Le hook pre-commit contient un bloc "Protection main" qui n'est
+    # utile que cote enseignant (detection de la branche solution). Sur
+    # le repo etudiant il ne se declenche jamais et fait une fuite de
+    # contexte (mention de generate-student.sh, de ../template-tp-java).
+    # On le strip lors de la generation etudiante : du commentaire
+    # "# Protection :" jusqu'au "fi" qui ferme le bloc.
+    if [ -f "$TP_DIR/.githooks/pre-commit" ]; then
+        sed -i '/^# Protection : bloquer les commits sur main/,/^fi$/d' \
+            "$TP_DIR/.githooks/pre-commit"
+    fi
+
     ok "Version étudiante générée dans $TP_DIR/"
     echo ""
     echo -e "${BOLD}Prochaines étapes :${NC}"
