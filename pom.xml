@@ -101,7 +101,7 @@
             </plugin>
 
             <!-- exec-maven-plugin : lance l'application console avec
-                 ./mvnw exec:java. Remplace javafx:run utilisé en R202. -->
+                 ./mvnw exec:java. -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
