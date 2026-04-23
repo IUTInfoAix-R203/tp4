@@ -118,11 +118,8 @@ Puis guide-le pour **merger la PR** et revenir sur `main` :
 > ```bash
 > gh pr merge --rebase --delete-branch
 > ```
-> Puis reviens sur `main` avec la version mergée :
-> ```bash
-> git checkout main
-> git pull
-> ```
+> Cette commande fait tout : merge de la PR, bascule de HEAD sur `main`, `pull` et suppression de la branche de feature (locale + distante).
+>
 > ✅ L'exercice N est terminé et mergé dans `main`. Tu peux passer à l'exercice suivant.
 
 ## Escalade progressive de l'aide

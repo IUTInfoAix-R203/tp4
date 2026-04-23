@@ -257,9 +257,10 @@ Ouvrez la PR dans le navigateur (`gh pr view --web`) pour consulter le diff, les
 
 ```bash
 gh pr merge --rebase --delete-branch
-git checkout main
-git pull
 ```
+
+Cette commande merge la PR, bascule votre HEAD local sur `main`, `pull` les
+derniers commits et supprime la branche de feature locale et distante.
 
 Votre score sur GitHub Actions augmente à chaque exercice terminé. Vous pouvez maintenant passer à l'exercice suivant en reprenant à l'étape 1.
 
