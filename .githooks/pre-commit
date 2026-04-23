@@ -23,28 +23,6 @@
 
 set -e
 
-# Protection : bloquer les commits sur main dans les repos ENSEIGNANT uniquement.
-# Dans le repo enseignant (IUTInfoAix-R203), la branche main est dérivée de
-# solution et régénérée par la CI. Un commit manuel serait écrasé.
-# Dans les repos ÉTUDIANTS (IUTInfoAix-R203-2026), main est la seule branche
-# et les étudiants doivent pouvoir y commiter normalement.
-# Détection : si la branche "solution" existe localement, c'est un repo enseignant.
-# Bypass : ALLOW_MAIN_COMMIT=1 git commit ... (utilisé par generate-student.sh)
-BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
-HAS_SOLUTION=$(git rev-parse --verify solution 2>/dev/null && echo "yes" || true)
-if [ "$BRANCH" = "main" ] && [ "$HAS_SOLUTION" = "yes" ] && [ "$ALLOW_MAIN_COMMIT" != "1" ]; then
-  echo ""
-  echo "  ⛔  Commit bloqué : vous êtes sur la branche 'main' du repo enseignant."
-  echo ""
-  echo "  La branche main est la version étudiante, régénérée automatiquement"
-  echo "  par la CI à chaque push sur 'solution'. Un commit manuel ici serait"
-  echo "  écrasé au prochain push."
-  echo ""
-  echo "  → Pour travailler : git checkout solution"
-  echo "  → Pour générer main : cd ../template-tp-java && ./generate-student.sh --apply ../\$(basename \"\$PWD\")"
-  echo ""
-  exit 1
-fi
 
 # Liste des fichiers Java staged (Added / Copied / Modified)
 STAGED_JAVA=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.java$' || true)
