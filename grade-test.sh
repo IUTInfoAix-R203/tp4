@@ -1,26 +1,29 @@
 #!/bin/bash
 # ============================================================
-# Helper d'autograding : lance un test Maven ciblé et vérifie
-# qu'il s'est RÉELLEMENT exécuté (pas @Disabled) ET qu'il a passé.
+# Helper d'autograding : grade UN test à partir du rapport
+# Surefire déjà généré (pas d'invocation Maven ici).
 #
 # Usage : ./grade-test.sh <FQCN> <method>
 #   FQCN   : nom complet de la classe de test
-#            (ex: fr.univ_amu.iut.exercice1.HelloWorldTest)
-#   method : nom de la méthode de test
-#            (ex: retourneLeMessageAttendu)
+#            (ex: fr.univ_amu.iut.exercice1.PremiereFenetreTest)
+#   method : nom de la méthode de test (sans parenthèses)
+#            (ex: laFenetreEstVisible)
 #
 # Codes de sortie :
-#   0   test a été exécuté et a passé
-#   != 0  test est @Disabled, a échoué, a erroré, ou est absent
+#   0     test exécuté et passé
+#   != 0  test absent du rapport, @Disabled, échoué ou erroré
 #
-# Pourquoi ce wrapper ?
-# ---------------------
-# `./mvnw test -Dtest='Class#method'` exit 0 même quand la méthode
-# ciblée est @Disabled (Surefire la compte en "skipped" mais le
-# build reste SUCCESS). Si on se contente de ça, un TP vide avec
-# tous les tests @Disabled recevrait 100/100 au grader Classroom.
-# On parse donc le rapport XML de Surefire pour exiger tests > 0
-# ET skipped/failures/errors tous à 0.
+# Pourquoi ne PAS lancer Maven ici ?
+# ----------------------------------
+# Le workflow Classroom contient un step "Run impacted tests" qui
+# fait UN seul `./mvnw test` (filtré sur les paquets impactés par
+# le push, avec rapports cachés pour les paquets inchangés). On
+# économise ~10x les minutes Actions par rapport à l'ancienne
+# stratégie d'un `./mvnw test` par méthode (chaque démarrage JVM
+# coûtait ~10-15s). Ici on lit juste le XML déjà sur disque.
+#
+# La sémantique reste la même : un test @Disabled est marqué
+# `<skipped/>` dans le XML et compte comme un échec.
 # ============================================================
 
 set -e
@@ -35,25 +38,35 @@ fi
 
 xml="target/surefire-reports/TEST-${fqcn}.xml"
 
-# Lance le test ; exit != 0 si Maven échoue (test failed, class not found, etc.)
-./mvnw -B -q test -Dtest="${fqcn}#${method}" || exit 1
-
 if [ ! -f "$xml" ]; then
-    echo "Rapport XML absent : $xml" >&2
+    echo "Rapport XML absent : $xml (le step 'Run impacted tests' n'a pas couvert cette classe)" >&2
     exit 1
 fi
 
-# Extrait les attributs du <testsuite> racine
-tests=$(grep -oE 'tests="[0-9]+"' "$xml" | head -1 | grep -oE '[0-9]+' || echo 0)
-skipped=$(grep -oE 'skipped="[0-9]+"' "$xml" | head -1 | grep -oE '[0-9]+' || echo 0)
-failures=$(grep -oE 'failures="[0-9]+"' "$xml" | head -1 | grep -oE '[0-9]+' || echo 0)
-errors=$(grep -oE 'errors="[0-9]+"' "$xml" | head -1 | grep -oE '[0-9]+' || echo 0)
+python3 - "$xml" "$method" <<'PY'
+import sys, xml.etree.ElementTree as ET
 
-if [ "$tests" -eq 0 ] \
-    || [ "$skipped" -gt 0 ] \
-    || [ "$failures" -gt 0 ] \
-    || [ "$errors" -gt 0 ]; then
-    exit 1
-fi
+xml_path, method = sys.argv[1], sys.argv[2]
 
-exit 0
+try:
+    root = ET.parse(xml_path).getroot()
+except ET.ParseError as e:
+    print(f"XML invalide : {xml_path} ({e})", file=sys.stderr)
+    sys.exit(1)
+
+# JUnit 5 ajoute parfois les types de paramètres au nom du testcase
+# (ex: "laFenetreEstVisible(FxRobot)"). On compare avant la première
+# parenthèse.
+for tc in root.iter("testcase"):
+    name = tc.get("name", "")
+    if name.split("(", 1)[0] == method:
+        for child in tc:
+            tag = child.tag.rsplit("}", 1)[-1]
+            if tag in ("skipped", "failure", "error"):
+                print(f"Test {method} : {tag}", file=sys.stderr)
+                sys.exit(1)
+        sys.exit(0)
+
+print(f"Méthode {method} absente de {xml_path}", file=sys.stderr)
+sys.exit(1)
+PY
