@@ -55,3 +55,52 @@ jobs:
 
           # Force-push sur main (écrase tout l'historique)
           git push origin main-generated:main --force
+
+      # Une fois main régénérée, déclenche le workflow sync.yml du repo
+      # IUTInfoAix-R203/classroom-sync (multi-module : R202 + R203) avec un
+      # filtre sur le repo courant. Évite à l'enseignant de lancer manuellement
+      # publish-to-classroom.sh, et garantit que le push Classroom se fait
+      # APRÈS la régénération de main (plus de race condition).
+      #
+      # Skip silencieux si CLASSROOM_SYNC_DISPATCH_TOKEN n'est pas configuré.
+      # Le secret doit être un Fine-Grained PAT avec Actions: write sur
+      # IUTInfoAix-R203/classroom-sync (idéalement défini en org-level secret
+      # sur IUTInfoAix-R203 pour être partagé entre tous les TPs).
+      - name: Trigger Classroom sync for this TP
+        env:
+          GH_TOKEN: ${{ secrets.CLASSROOM_SYNC_DISPATCH_TOKEN }}
+          TP_REPO: ${{ github.repository }}
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::warning::CLASSROOM_SYNC_DISPATCH_TOKEN non configuré ; sync Classroom non déclenchée"
+            exit 0
+          fi
+          gh api -X POST \
+            repos/IUTInfoAix-R203/classroom-sync/actions/workflows/sync.yml/dispatches \
+            -f ref=main \
+            -f "inputs[tp_filter]=${TP_REPO}"
+          echo "::notice::Sync Classroom déclenchée pour ${TP_REPO} (filtre tp_filter)"
+
+      # Déclenche aussi la propagation de l'infra vers les repos étudiants
+      # déjà forkés (workflow sync-students.yml côté classroom-sync). Pousse
+      # uniquement l'infra (.github/, devcontainer, README, pom.xml...), JAMAIS
+      # src/ - sanity check côté Python. dry_run=false : push réel.
+      #
+      # Risque assumé : tous les étudiants inscrits reçoivent l'update à chaque
+      # push sur solution. Penser à grouper les modifs d'infra plutôt que faire
+      # plusieurs commits successifs.
+      - name: Trigger sync-students for this TP
+        env:
+          GH_TOKEN: ${{ secrets.CLASSROOM_SYNC_DISPATCH_TOKEN }}
+          TP_REPO: ${{ github.repository }}
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::warning::CLASSROOM_SYNC_DISPATCH_TOKEN non configuré ; sync-students non déclenchée"
+            exit 0
+          fi
+          gh api -X POST \
+            repos/IUTInfoAix-R203/classroom-sync/actions/workflows/sync-students.yml/dispatches \
+            -f ref=main \
+            -f "inputs[dry_run]=false" \
+            -f "inputs[tp_filter]=${TP_REPO}"
+          echo "::notice::Sync-students déclenchée pour ${TP_REPO} (dry_run=false, filtre tp_filter)"
