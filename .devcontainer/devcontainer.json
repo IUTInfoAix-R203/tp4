@@ -42,6 +42,7 @@
             },
             "extensions": [
                 "redhat.java",
+                "redhat.vscode-xml",
                 "vscjava.vscode-java-debug",
                 "vscjava.vscode-java-test",
                 "vscjava.vscode-maven",
