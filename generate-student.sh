@@ -3,19 +3,30 @@
 # Génère la version étudiante d'un TP à partir de la branche
 # solution.
 #
-# La branche "solution" contient les implémentations complètes
-# avec des marqueurs :
-#   // --solution--
-#   code à supprimer...
+# La branche "solution" peut combiner trois marqueurs :
+#
+#   // --solution--                       (bloc à SUPPRIMER côté étudiant)
+#   code propre que l'étudiant doit produire
 #   // --end-solution--
 #
+#   /* --student--                        (bloc à ACTIVER côté étudiant)
+#   code de départ commenté inerte côté solution,
+#   décommenté côté étudiant
+#   --end-student-- */
+#
+#   // --solution-only--                  (en en-tête de fichier, 20 premières lignes)
+#   classe entière qui n'existe que côté solution
+#   (le fichier est supprimé côté étudiant)
+#
 # Le script :
-#   1. Copie la branche solution dans un répertoire temporaire
-#   2. Supprime les blocs entre marqueurs (source)
-#   3. Ajoute @Disabled aux tests des exercices
-#   4. Lance Spotless (supprime imports inutilisés, reformate)
-#   5. Vérifie que la version étudiante compile
-#   6. Copie le résultat dans le TP cible (si --apply)
+#   1a. Copie la branche solution dans un répertoire temporaire
+#   1b. Supprime les fichiers marqués // --solution-only--
+#   1c. Supprime les blocs // --solution-- ... // --end-solution--
+#   1d. Décommente les blocs /* --student-- ... --end-student-- */
+#   2.  Ajoute @Disabled aux tests des exercices
+#   3.  Lance Spotless (supprime imports inutilisés, reformate)
+#   4.  Vérifie que la version étudiante compile
+#   5.  Copie le résultat dans le TP cible (si --apply)
 #
 # Mode par défaut : DRY-RUN (affiche les fichiers qui seraient
 # modifiés sans rien écrire). Ajoute --apply pour appliquer.
