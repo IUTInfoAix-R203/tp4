@@ -38,11 +38,7 @@
                     "zsh": { "path": "zsh" }
                 },
                 "terminal.integrated.defaultProfile.linux": "zsh",
-                "redhat.telemetry.enabled": false,
-                "sonarlint.disableTelemetry": true,
-                "sonarlint.rules": {
-                    "java:S106": { "level": "off" }
-                }
+                "redhat.telemetry.enabled": false
             },
             "extensions": [
                 "redhat.java",
@@ -50,8 +46,6 @@
                 "vscjava.vscode-java-test",
                 "vscjava.vscode-maven",
                 "vscjava.vscode-java-dependency",
-                "VisualStudioExptTeam.vscodeintellicode",
-                "SonarSource.sonarlint-vscode",
                 "eamodio.gitlens",
                 "GitHub.copilot-chat"
             ]
