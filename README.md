@@ -79,7 +79,7 @@ L'ensemble du TP se fait sur **GitHub Codespaces** -aucune installation locale n
 ### Documentation de référence
 
 - [Java 25 API Documentation](https://docs.oracle.com/en/java/javase/25/docs/api/)
-- [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/)
+- [JUnit 6 User Guide](https://docs.junit.org/current/user-guide/)
 - [AssertJ Core Documentation](https://assertj.github.io/doc/)
 - [ApprovalTests Java](https://github.com/approvals/ApprovalTests.Java)
 
@@ -550,7 +550,7 @@ Règle pratique : à la fin de chaque étape de refactoring, **F5** lance Maven 
 
 - [VS Code - Java Refactoring (doc officielle)](https://code.visualstudio.com/docs/java/java-refactoring)
 - [Refactoring (Martin Fowler)](https://refactoring.com)
-- [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/)
+- [JUnit 6 User Guide](https://docs.junit.org/current/user-guide/)
 - [AssertJ Core Documentation](https://assertj.github.io/doc/)
 - [ApprovalTests Java](https://github.com/approvals/ApprovalTests.Java)
 - [Mockito Documentation](https://site.mockito.org)

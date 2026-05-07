@@ -3,6 +3,7 @@
     "java.configuration.updateBuildConfiguration": "automatic",
     "java.compile.nullAnalysis.mode": "automatic",
     "git.autofetch": true,
+    "files.autoSave": "onFocusChange",
     "editor.formatOnSave": true,
     "editor.formatOnType": true,
     "files.exclude": {
