@@ -1,31 +1,24 @@
 package fr.univ_amu.iut.exercice5;
 
-/**
- * Exercice 5 - Introduce Parameter Object.
- *
- * <p>La méthode {@link #envoyer} prend <b>7 paramètres</b>. C'est le smell <b>Long Parameter
- * List</b> dans toute sa gloire :
- *
- * <ul>
- *   <li>L'appel est illisible : {@code envoyer("a@b.c", "c@d.e", "Sujet", "Corps", true, 3, null)}
- *       - quel booléen ? quel numéro ?
- *   <li>Les paramètres sont <b>couplés</b> : destinataire, expéditeur et corps vont toujours
- *       ensemble ; les dissocier n'a aucun sens métier
- *   <li>Ajouter un 8e paramètre (ex: pièce jointe) impose de modifier <b>tous les appelants</b>
- * </ul>
- *
- * <p>Refactoring attendu : <b>Introduce Parameter Object</b>. Créer une classe {@code MessageEmail}
- * (un {@code record} est parfait) qui regroupe les 7 paramètres. La méthode devient {@code
- * envoyer(MessageEmail)} : un seul paramètre, un contrat explicite, et ajouter un champ ne casse
- * plus les appelants.
- */
+/// Exercice 5 - Introduce Parameter Object.
+///
+/// La méthode [#envoyer] prend **7 paramètres**. C'est le smell **Long Parameter List** dans
+/// toute sa gloire :
+///
+/// - L'appel est illisible : `envoyer("a@b.c", "c@d.e", "Sujet", "Corps", true, 3, null)` - quel
+///   booléen ? quel numéro ?
+/// - Les paramètres sont **couplés** : destinataire, expéditeur et corps vont toujours ensemble ;
+///   les dissocier n'a aucun sens métier
+/// - Ajouter un 8e paramètre (ex: pièce jointe) impose de modifier **tous les appelants**
+///
+/// Refactoring attendu : **Introduce Parameter Object**. Créer une classe `MessageEmail` (un
+/// `record` est parfait) qui regroupe les 7 paramètres. La méthode devient `envoyer(MessageEmail)`
+/// : un seul paramètre, un contrat explicite, et ajouter un champ ne casse plus les appelants.
 public class ServiceNotification {
 
-  /**
-   * Formate et envoie (simulation) un email.
-   *
-   * @return la représentation textuelle du mail envoyé, pour vérification en test
-   */
+  /// Formate et envoie (simulation) un email.
+  ///
+  /// @return la représentation textuelle du mail envoyé, pour vérification en test
   // --solution--
   // Delegate backward-compat : on garde la signature a 7 parametres pour ne pas
   // casser les appelants, mais on supprime explicitement le warning PMD car le
@@ -69,7 +62,7 @@ public class ServiceNotification {
   }
 
   // --solution--
-  /** Nouvelle signature canonique : un seul parametre qui regroupe l'ensemble du message. */
+  /// Nouvelle signature canonique : un seul parametre qui regroupe l'ensemble du message.
   public String envoyer(MessageEmail message) {
     StringBuilder sb = new StringBuilder();
     if (message.important()) {

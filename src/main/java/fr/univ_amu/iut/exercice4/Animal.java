@@ -1,29 +1,25 @@
 package fr.univ_amu.iut.exercice4;
 
-/**
- * Exercice 4 - Replace Conditional with Polymorphism.
- *
- * <p>Cette classe {@code Animal} a un champ {@code type} (une {@link String}...) et une méthode
- * {@link #faireDuBruit()} qui est un gros {@code switch} sur ce type. Chaque fois qu'on ajoute une
- * espèce, il faut modifier le switch - et risque d'oublier un cas.
- *
- * <p>Smells présents :
- *
- * <ul>
- *   <li><b>Type Code</b> : le champ {@code type} est un String alors qu'il représente une
- *       énumération fermée (chien, chat, vache, canard)
- *   <li><b>Switch Statements</b> : le switch duplique la logique "qui fait quel bruit"
- *   <li><b>Shotgun Surgery</b> : ajouter une nouvelle espèce demande de modifier potentiellement
- *       plusieurs méthodes (ici uniquement {@code faireDuBruit()}, mais imaginez si on ajoute
- *       {@code nourrir()}, {@code dormir()}, etc.)
- * </ul>
- *
- * <p>Refactoring attendu : <b>Replace Conditional with Polymorphism</b>. Transformer {@code Animal}
- * en classe abstraite, créer {@code Chien}, {@code Chat}, {@code Vache}, {@code Canard} qui
- * héritent et redéfinissent {@code faireDuBruit()}. Le switch disparaît ; la JVM s'occupe du
- * dispatch. On garde un point d'entrée `Animal.creer(type, nom)` qui retourne la bonne sous-classe,
- * pour les appelants qui ne connaissent que le type sous forme de String.
- */
+/// Exercice 4 - Replace Conditional with Polymorphism.
+///
+/// Cette classe `Animal` a un champ `type` (une [String]...) et une méthode [#faireDuBruit()]
+/// qui est un gros `switch` sur ce type. Chaque fois qu'on ajoute une espèce, il faut modifier le
+/// switch - et risque d'oublier un cas.
+///
+/// Smells présents :
+///
+/// - **Type Code** : le champ `type` est un String alors qu'il représente une énumération fermée
+///   (chien, chat, vache, canard)
+/// - **Switch Statements** : le switch duplique la logique "qui fait quel bruit"
+/// - **Shotgun Surgery** : ajouter une nouvelle espèce demande de modifier potentiellement
+///   plusieurs méthodes (ici uniquement `faireDuBruit()`, mais imaginez si on ajoute `nourrir()`,
+///   `dormir()`, etc.)
+///
+/// Refactoring attendu : **Replace Conditional with Polymorphism**. Transformer `Animal` en
+/// classe abstraite, créer `Chien`, `Chat`, `Vache`, `Canard` qui héritent et redéfinissent
+/// `faireDuBruit()`. Le switch disparaît ; la JVM s'occupe du dispatch. On garde un point d'entrée
+/// `Animal.creer(type, nom)` qui retourne la bonne sous-classe, pour les appelants qui ne
+/// connaissent que le type sous forme de String.
 // --solution--
 public abstract class Animal {
 
@@ -37,15 +33,13 @@ public abstract class Animal {
     return nom;
   }
 
-  /** Retourne le cri de l'animal. Implémenté par chaque sous-classe. */
+  /// Retourne le cri de l'animal. Implémenté par chaque sous-classe.
   public abstract String faireDuBruit();
 
-  /**
-   * Fabrique : retourne la sous-classe d'{@code Animal} correspondant au type demandé.
-   *
-   * @param type "chien", "chat", "vache" ou "canard"
-   * @param nom nom de l'animal
-   */
+  /// Fabrique : retourne la sous-classe d'`Animal` correspondant au type demandé.
+  ///
+  /// @param type "chien", "chat", "vache" ou "canard"
+  /// @param nom nom de l'animal
   public static Animal creer(String type, String nom) {
     return switch (type) {
       case "chien" -> new Chien(nom);

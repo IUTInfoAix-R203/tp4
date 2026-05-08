@@ -23,7 +23,7 @@ class AnimalTest {
   // =========================================================================
 
   @Test
-  void un_chien_fait_waouf() {
+  void un_chien_fait_wouaf() {
     assertThat(creerAnimal("Rex", "chien").faireDuBruit()).isEqualTo("Wouaf !");
   }
 

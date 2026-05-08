@@ -1,17 +1,15 @@
 // --solution-only--
 package fr.univ_amu.iut.exercice6;
 
-/**
- * Stratégie d'évolution quotidienne d'un {@link Item}.
- *
- * <p>Un {@code Updater} par type d'article. Chacun encapsule la règle propre à son type, en
- * utilisant les helpers {@code increaseQuality}, {@code decreaseQuality}, {@code decreaseSellIn}
- * pour exprimer l'invariant "la qualité est entre 0 et 50". {@link GildedRose} sélectionne le bon
- * updater par le nom de l'article et lui délègue la mise à jour.
- *
- * <p>Ce fichier (et les sous-classes qu'il contient) n'existe <b>que sur la solution</b> du
- * refactoring. Dans la version étudiante, c'est à vous de décomposer le switch en classes.
- */
+/// Stratégie d'évolution quotidienne d'un [Item].
+///
+/// Un `Updater` par type d'article. Chacun encapsule la règle propre à son type, en utilisant
+/// les helpers `increaseQuality`, `decreaseQuality`, `decreaseSellIn` pour exprimer l'invariant
+/// "la qualité est entre 0 et 50". [GildedRose] sélectionne le bon updater par le nom de
+/// l'article et lui délègue la mise à jour.
+///
+/// Ce fichier (et les sous-classes qu'il contient) n'existe **que sur la solution** du
+/// refactoring. Dans la version étudiante, c'est à vous de décomposer le switch en classes.
 abstract class Updater {
 
   abstract void apply(Item item);
@@ -33,7 +31,7 @@ abstract class Updater {
   }
 }
 
-/** Article normal : qualité -1 par jour, -2 après péremption. */
+/// Article normal : qualité -1 par jour, -2 après péremption.
 class NormalUpdater extends Updater {
   @Override
   void apply(Item item) {
@@ -45,7 +43,7 @@ class NormalUpdater extends Updater {
   }
 }
 
-/** Aged Brie : qualité +1 par jour, +2 après péremption, plafonnée à 50. */
+/// Aged Brie : qualité +1 par jour, +2 après péremption, plafonnée à 50.
 class BrieUpdater extends Updater {
   @Override
   void apply(Item item) {
@@ -57,7 +55,7 @@ class BrieUpdater extends Updater {
   }
 }
 
-/** Sulfuras : jamais ne se vend, jamais ne se dégrade. */
+/// Sulfuras : jamais ne se vend, jamais ne se dégrade.
 class SulfurasUpdater extends Updater {
   @Override
   void apply(Item item) {
@@ -65,10 +63,8 @@ class SulfurasUpdater extends Updater {
   }
 }
 
-/**
- * Backstage passes : qualité +1 jusqu'à 11 jours, +2 entre 10 et 6, +3 à 5 jours et moins, tombe à
- * 0 après le concert.
- */
+/// Backstage passes : qualité +1 jusqu'à 11 jours, +2 entre 10 et 6, +3 à 5 jours et moins, tombe
+/// à 0 après le concert.
 class BackstageUpdater extends Updater {
   @Override
   void apply(Item item) {
@@ -86,7 +82,7 @@ class BackstageUpdater extends Updater {
   }
 }
 
-/** Conjured : se dégrade deux fois plus vite qu'un article normal. */
+/// Conjured : se dégrade deux fois plus vite qu'un article normal.
 class ConjuredUpdater extends Updater {
   @Override
   void apply(Item item) {

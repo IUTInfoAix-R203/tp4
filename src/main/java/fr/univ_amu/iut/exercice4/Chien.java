@@ -1,7 +1,7 @@
 // --solution-only--
 package fr.univ_amu.iut.exercice4;
 
-/** Sous-classe d'{@link Animal} pour les chiens. */
+/// Sous-classe d'[Animal] pour les chiens.
 public class Chien extends Animal {
 
   public Chien(String nom) {
