@@ -22,7 +22,7 @@ class GildedRoseTest {
   // =========================================================================
 
   @Test
-  void normal_avantPeremption_quality_baisse_de_1_et_sellIn_baisse_de_1() {
+  void un_item_normal_avant_peremption_baisse_quality_de_1_et_sellin_de_1() {
     Item[] items = {new Item("normal", 5, 10)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].sellIn).isEqualTo(4);
@@ -30,7 +30,7 @@ class GildedRoseTest {
   }
 
   @Test
-  void normal_apresPeremption_quality_baisse_de_2() {
+  void un_item_normal_apres_peremption_baisse_quality_de_2() {
     Item[] items = {new Item("normal", 0, 10)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].sellIn).isEqualTo(-1);
@@ -38,7 +38,7 @@ class GildedRoseTest {
   }
 
   @Test
-  void normal_quality_ne_devient_jamais_negative() {
+  void un_item_normal_ne_voit_jamais_sa_quality_devenir_negative() {
     Item[] items = {new Item("normal", 5, 0)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].quality).isZero();
@@ -49,21 +49,21 @@ class GildedRoseTest {
   // =========================================================================
 
   @Test
-  void agedBrie_augmente_en_quality_avec_le_temps() {
+  void un_aged_brie_augmente_en_quality_avec_le_temps() {
     Item[] items = {new Item("Aged Brie", 5, 10)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].quality).isEqualTo(11);
   }
 
   @Test
-  void agedBrie_apres_peremption_augmente_deux_fois_plus_vite() {
+  void un_aged_brie_apres_peremption_augmente_deux_fois_plus_vite() {
     Item[] items = {new Item("Aged Brie", 0, 10)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].quality).isEqualTo(12);
   }
 
   @Test
-  void agedBrie_quality_ne_depasse_jamais_50() {
+  void un_aged_brie_ne_depasse_jamais_50_en_quality() {
     Item[] items = {new Item("Aged Brie", 5, 50)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].quality).isEqualTo(50);
@@ -74,7 +74,7 @@ class GildedRoseTest {
   // =========================================================================
 
   @Test
-  void sulfuras_nest_jamais_vendu_ni_degrade() {
+  void un_sulfuras_n_est_jamais_vendu_ni_degrade() {
     Item[] items = {new Item("Sulfuras, Hand of Ragnaros", 0, 80)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].sellIn).isZero();
@@ -82,7 +82,7 @@ class GildedRoseTest {
   }
 
   @Test
-  void sulfuras_conserve_sa_quality_quelle_que_soit_la_date() {
+  void un_sulfuras_conserve_sa_quality_quelle_que_soit_la_date() {
     Item[] items = {new Item("Sulfuras, Hand of Ragnaros", -5, 80)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].sellIn).isEqualTo(-5);
@@ -94,35 +94,35 @@ class GildedRoseTest {
   // =========================================================================
 
   @Test
-  void backstage_plus_de_10_jours_augmente_de_1() {
+  void un_backstage_a_plus_de_10_jours_augmente_de_1() {
     Item[] items = {new Item("Backstage passes to a TAFKAL80ETC concert", 15, 20)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].quality).isEqualTo(21);
   }
 
   @Test
-  void backstage_10_jours_ou_moins_augmente_de_2() {
+  void un_backstage_a_10_jours_ou_moins_augmente_de_2() {
     Item[] items = {new Item("Backstage passes to a TAFKAL80ETC concert", 10, 20)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].quality).isEqualTo(22);
   }
 
   @Test
-  void backstage_5_jours_ou_moins_augmente_de_3() {
+  void un_backstage_a_5_jours_ou_moins_augmente_de_3() {
     Item[] items = {new Item("Backstage passes to a TAFKAL80ETC concert", 5, 20)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].quality).isEqualTo(23);
   }
 
   @Test
-  void backstage_apres_le_concert_tombe_a_zero() {
+  void un_backstage_apres_le_concert_tombe_a_zero() {
     Item[] items = {new Item("Backstage passes to a TAFKAL80ETC concert", 0, 49)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].quality).isZero();
   }
 
   @Test
-  void backstage_ne_depasse_pas_50() {
+  void un_backstage_ne_depasse_pas_50() {
     Item[] items = {new Item("Backstage passes to a TAFKAL80ETC concert", 5, 49)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].quality).isEqualTo(50);
@@ -136,7 +136,7 @@ class GildedRoseTest {
   @Disabled("Activer après avoir refactoré et ajouté le support des articles Conjured")
   --end-student-- */
   @Test
-  void conjured_avant_peremption_baisse_de_2() {
+  void un_conjured_avant_peremption_baisse_de_2() {
     Item[] items = {new Item("Conjured Mana Cake", 5, 10)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].quality).isEqualTo(8);
@@ -146,7 +146,7 @@ class GildedRoseTest {
   @Disabled("Activer après avoir refactoré et ajouté le support des articles Conjured")
   --end-student-- */
   @Test
-  void conjured_apres_peremption_baisse_de_4() {
+  void un_conjured_apres_peremption_baisse_de_4() {
     Item[] items = {new Item("Conjured Mana Cake", 0, 10)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].quality).isEqualTo(6);
@@ -156,7 +156,7 @@ class GildedRoseTest {
   @Disabled("Activer après avoir refactoré et ajouté le support des articles Conjured")
   --end-student-- */
   @Test
-  void conjured_ne_devient_pas_negatif() {
+  void un_conjured_ne_devient_pas_negatif() {
     Item[] items = {new Item("Conjured Mana Cake", 5, 1)};
     new GildedRose(items).updateQuality();
     assertThat(items[0].quality).isZero();

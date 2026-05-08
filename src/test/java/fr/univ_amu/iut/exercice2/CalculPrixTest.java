@@ -29,49 +29,49 @@ class CalculPrixTest {
   // =========================================================================
 
   @Test
-  void montantNul_retourneLesFraisDePort() {
+  void un_montant_nul_retourne_les_frais_de_port() {
     // 0 * 1.20 = 0 TTC, en dessous du seuil 50 -> +8 port = 8
     assertThat(new CalculPrix().calculerPrixFinal(0.0, false)).isEqualTo(8.0, within(0.001));
   }
 
   @Test
-  void petitMontantSousLeSeuilFraisDePort_ajouteLesFraisDePort() {
+  void un_petit_montant_sous_le_seuil_des_frais_de_port_ajoute_les_frais_de_port() {
     // 30 HT * 1.20 = 36 TTC < 50 -> +8 port = 44
     assertThat(new CalculPrix().calculerPrixFinal(30.0, false)).isEqualTo(44.0, within(0.001));
   }
 
   @Test
-  void montantAuSeuilFraisDePort_portOffert() {
+  void un_montant_au_seuil_des_frais_de_port_offre_le_port() {
     // 50 HT * 1.20 = 60 TTC >= 50 -> port offert
     assertThat(new CalculPrix().calculerPrixFinal(50.0, false)).isEqualTo(60.0, within(0.001));
   }
 
   @Test
-  void montantMoyen_nonFidele_pasDeRemise_pasDeFraisPort() {
+  void un_montant_moyen_d_un_client_non_fidele_n_applique_ni_remise_ni_frais_de_port() {
     // 200 HT * 1.20 = 240 TTC, pas fidèle -> pas de remise, port offert
     assertThat(new CalculPrix().calculerPrixFinal(200.0, false)).isEqualTo(240.0, within(0.001));
   }
 
   @Test
-  void grosMontant_nonFidele_pasDeRemise() {
+  void un_gros_montant_d_un_client_non_fidele_n_applique_pas_de_remise() {
     // 1000 HT * 1.20 = 1200 TTC, pas fidèle -> pas de remise
     assertThat(new CalculPrix().calculerPrixFinal(1000.0, false)).isEqualTo(1200.0, within(0.001));
   }
 
   @Test
-  void fidele_sousLeSeuilRemise_pasDeRemise() {
+  void un_client_fidele_sous_le_seuil_de_remise_n_applique_pas_de_remise() {
     // 400 HT * 1.20 = 480 TTC, fidèle mais TTC NON > 500 -> pas de remise
     assertThat(new CalculPrix().calculerPrixFinal(400.0, true)).isEqualTo(480.0, within(0.001));
   }
 
   @Test
-  void fidele_surLeSeuilRemise_appliqueLaRemise() {
+  void un_client_fidele_sur_le_seuil_de_remise_applique_la_remise() {
     // 500 HT * 1.20 = 600 TTC > 500, fidèle -> remise -> 600 * 0.95 = 570
     assertThat(new CalculPrix().calculerPrixFinal(500.0, true)).isEqualTo(570.0, within(0.001));
   }
 
   @Test
-  void fidele_grosMontant_appliqueLaRemise() {
+  void un_client_fidele_avec_un_gros_montant_applique_la_remise() {
     // 1000 HT * 1.20 = 1200 > 500, fidèle -> 1200 * 0.95 = 1140
     assertThat(new CalculPrix().calculerPrixFinal(1000.0, true)).isEqualTo(1140.0, within(0.001));
   }
@@ -84,7 +84,7 @@ class CalculPrixTest {
   @Disabled("Activer après avoir extrait TAUX_TVA")
   --end-student-- */
   @Test
-  void constanteTauxTVAExtraite() throws Exception {
+  void la_constante_taux_tva_a_ete_extraite() throws Exception {
     assertConstanteDouble("TAUX_TVA", 1.20);
   }
 
@@ -92,7 +92,7 @@ class CalculPrixTest {
   @Disabled("Activer après avoir extrait SEUIL_REMISE_FIDELITE")
   --end-student-- */
   @Test
-  void constanteSeuilRemiseExtraite() throws Exception {
+  void la_constante_seuil_remise_a_ete_extraite() throws Exception {
     assertConstanteDouble("SEUIL_REMISE_FIDELITE", 500.0);
   }
 
@@ -100,7 +100,7 @@ class CalculPrixTest {
   @Disabled("Activer après avoir extrait TAUX_REMISE_FIDELITE")
   --end-student-- */
   @Test
-  void constanteTauxRemiseExtraite() throws Exception {
+  void la_constante_taux_remise_a_ete_extraite() throws Exception {
     assertConstanteDouble("TAUX_REMISE_FIDELITE", 0.95);
   }
 
@@ -108,7 +108,7 @@ class CalculPrixTest {
   @Disabled("Activer après avoir extrait SEUIL_FRAIS_PORT_OFFERT")
   --end-student-- */
   @Test
-  void constanteSeuilFraisPortExtraite() throws Exception {
+  void la_constante_seuil_frais_port_a_ete_extraite() throws Exception {
     assertConstanteDouble("SEUIL_FRAIS_PORT_OFFERT", 50.0);
   }
 
@@ -116,7 +116,7 @@ class CalculPrixTest {
   @Disabled("Activer après avoir extrait MONTANT_FRAIS_PORT")
   --end-student-- */
   @Test
-  void constanteMontantFraisPortExtraite() throws Exception {
+  void la_constante_montant_frais_port_a_ete_extraite() throws Exception {
     assertConstanteDouble("MONTANT_FRAIS_PORT", 8.0);
   }
 

@@ -23,27 +23,27 @@ class AnimalTest {
   // =========================================================================
 
   @Test
-  void chien_waouf() {
+  void un_chien_fait_waouf() {
     assertThat(creerAnimal("Rex", "chien").faireDuBruit()).isEqualTo("Wouaf !");
   }
 
   @Test
-  void chat_miaou() {
+  void un_chat_fait_miaou() {
     assertThat(creerAnimal("Felix", "chat").faireDuBruit()).isEqualTo("Miaou !");
   }
 
   @Test
-  void vache_meuh() {
+  void une_vache_fait_meuh() {
     assertThat(creerAnimal("Marguerite", "vache").faireDuBruit()).isEqualTo("Meuh !");
   }
 
   @Test
-  void canard_coinCoin() {
+  void un_canard_fait_coin_coin() {
     assertThat(creerAnimal("Donald", "canard").faireDuBruit()).isEqualTo("Coin coin !");
   }
 
   @Test
-  void nomDoitEtreAccessible() {
+  void le_champ_nom_est_accessible() {
     assertThat(creerAnimal("Rex", "chien").getNom()).isEqualTo("Rex");
   }
 
@@ -55,7 +55,7 @@ class AnimalTest {
   @Disabled("Activer après Replace Conditional with Polymorphism (Animal devient abstract)")
   --end-student-- */
   @Test
-  void animalEstAbstract() {
+  void la_classe_animal_est_abstract() {
     int m = Animal.class.getModifiers();
     assertThat(java.lang.reflect.Modifier.isAbstract(m))
         .as("Animal doit être abstract après le refactoring")
@@ -66,7 +66,7 @@ class AnimalTest {
   @Disabled("Activer après avoir créé la classe Chien extends Animal")
   --end-student-- */
   @Test
-  void classeChienHeriteDAnimal() throws Exception {
+  void la_classe_chien_herite_d_animal() throws Exception {
     Class<?> chien = Class.forName("fr.univ_amu.iut.exercice4.Chien");
     assertThat(Animal.class.isAssignableFrom(chien)).as("Chien doit hériter d'Animal").isTrue();
   }
@@ -75,7 +75,7 @@ class AnimalTest {
   @Disabled("Activer après avoir créé les classes Chat, Vache, Canard extends Animal")
   --end-student-- */
   @Test
-  void toutesLesEspecesOntLeurClasse() throws Exception {
+  void toutes_les_especes_ont_leur_propre_classe() throws Exception {
     for (String espece : new String[] {"Chat", "Vache", "Canard"}) {
       Class<?> c = Class.forName("fr.univ_amu.iut.exercice4." + espece);
       assertThat(Animal.class.isAssignableFrom(c)).as("%s doit hériter d'Animal", espece).isTrue();
@@ -86,7 +86,7 @@ class AnimalTest {
   @Disabled("Activer après avoir retiré le champ type (String) d'Animal")
   --end-student-- */
   @Test
-  void champTypeStringSupprime() {
+  void le_champ_type_string_a_ete_supprime() {
     assertThat(Animal.class.getDeclaredFields())
         .as("Aucun champ type:String ne doit plus exister")
         .noneMatch(f -> f.getName().equals("type") && f.getType() == String.class);
@@ -96,7 +96,7 @@ class AnimalTest {
   @Disabled("Activer après avoir créé une méthode statique de fabrique (Animal.creer(type, nom))")
   --end-student-- */
   @Test
-  void fabriqueCreeLaBonneEspece() throws Exception {
+  void la_fabrique_cree_la_bonne_espece() throws Exception {
     // Pour maintenir la compatibilité avec du code existant, on peut garder un point d'entrée
     // par nom de type : Animal.creer("chien", "Rex") retourne un Chien.
     java.lang.reflect.Method creer =

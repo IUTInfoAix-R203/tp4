@@ -28,12 +28,12 @@ class MenuTest {
   // =========================================================================
 
   @Test
-  void afficherUnMenuVide_retourneLEntete() {
+  void afficher_un_menu_vide_retourne_l_entete() {
     assertThat(new Menu().afficher()).isEqualTo("=== Menu ===\n");
   }
 
   @Test
-  void afficherDeuxOptions_lesListeDansLOrdreDInsertion() {
+  void afficher_deux_options_les_liste_dans_l_ordre_d_insertion() {
     Menu m = new Menu();
     m.ajouterOption("Nouveau", () -> {});
     m.ajouterOption("Quitter", () -> {});
@@ -41,7 +41,7 @@ class MenuTest {
   }
 
   @Test
-  void choisirUneOption_executeLAction() {
+  void choisir_une_option_execute_l_action() {
     Menu m = new Menu();
     AtomicInteger compteur = new AtomicInteger();
     m.ajouterOption("Incrementer", compteur::incrementAndGet);
@@ -50,7 +50,7 @@ class MenuTest {
   }
 
   @Test
-  void choisirUnIndiceInvalide_leveUneException() {
+  void choisir_un_indice_invalide_leve_une_exception() {
     Menu m = new Menu();
     m.ajouterOption("Unique", () -> {});
     assertThatThrownBy(() -> m.choisir(0)).isInstanceOf(IllegalArgumentException.class);
@@ -58,12 +58,12 @@ class MenuTest {
   }
 
   @Test
-  void afficherHistoriqueVide_retourneLEnteteSeul() {
+  void afficher_l_historique_vide_retourne_l_entete_seul() {
     assertThat(new Menu().afficherHistorique()).isEqualTo("--- Historique ---\n");
   }
 
   @Test
-  void afficherHistoriqueApresQuelquesChoix_lesListeDansLOrdre() {
+  void afficher_l_historique_apres_quelques_choix_les_liste_dans_l_ordre() {
     Menu m = new Menu();
     m.ajouterOption("A", () -> {});
     m.ajouterOption("B", () -> {});
@@ -74,7 +74,7 @@ class MenuTest {
   }
 
   @Test
-  void historiqueEstTronqueA10_leOnziemeChasseLePremier() {
+  void l_historique_est_tronque_a_10_le_onzieme_chasse_le_premier() {
     Menu m = new Menu();
     m.ajouterOption("X", () -> {});
     for (int i = 0; i < 11; i++) {
@@ -94,7 +94,7 @@ class MenuTest {
   @Disabled("Activer après avoir créé la classe Historique")
   --end-student-- */
   @Test
-  void classeHistoriqueExiste() throws Exception {
+  void la_classe_historique_existe() throws Exception {
     Class<?> histo = Class.forName("fr.univ_amu.iut.exercice3.Historique");
     assertThat(histo).isNotNull();
   }
@@ -103,7 +103,7 @@ class MenuTest {
   @Disabled("Activer après avoir doté Historique des trois méthodes attendues")
   --end-student-- */
   @Test
-  void classeHistoriqueALesTroisMethodes() throws Exception {
+  void la_classe_historique_a_les_trois_methodes_attendues() throws Exception {
     Class<?> histo = Class.forName("fr.univ_amu.iut.exercice3.Historique");
     assertThat(histo.getDeclaredMethod("enregistrer", String.class))
         .as("Historique.enregistrer(String)")
@@ -116,7 +116,7 @@ class MenuTest {
   @Disabled("Activer après avoir remplacé le champ historique de Menu par un Historique")
   --end-student-- */
   @Test
-  void menuUtiliseUnChampDeTypeHistorique() throws Exception {
+  void le_menu_utilise_un_champ_de_type_historique() throws Exception {
     Class<?> histo = Class.forName("fr.univ_amu.iut.exercice3.Historique");
     boolean trouve = false;
     for (Field f : Menu.class.getDeclaredFields()) {

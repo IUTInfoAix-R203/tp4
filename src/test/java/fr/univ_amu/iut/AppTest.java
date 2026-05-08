@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 class AppTest {
 
   @Test
-  void leMenuAfficheLeTitreDuTPEtLIUT() {
+  void le_menu_affiche_le_titre_du_tp_et_l_iut() {
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     PrintStream originalOut = System.out;
     try {

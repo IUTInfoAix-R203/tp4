@@ -14,7 +14,7 @@ class ServiceNotificationTest {
   // =========================================================================
 
   @Test
-  void mailMinimal_sansImportanceSansPJ() {
+  void un_mail_minimal_sans_importance_sans_pieces_jointes() {
     String mail = service.envoyer("a@b.c", "c@d.e", "Bonjour", "Hello", false, 3, null);
     assertThat(mail)
         .contains("De: c@d.e")
@@ -26,13 +26,13 @@ class ServiceNotificationTest {
   }
 
   @Test
-  void mailImportantAfficheLeTag() {
+  void un_mail_important_affiche_le_tag() {
     String mail = service.envoyer("a@b.c", "c@d.e", "Urgent", "Lis moi", true, 1, null);
     assertThat(mail).startsWith("[IMPORTANT]").contains("[P1]");
   }
 
   @Test
-  void piecesJointesSontListees() {
+  void les_pieces_jointes_sont_listees() {
     String mail =
         service.envoyer(
             "a@b.c", "c@d.e", "CV", "Voici", false, 2, new String[] {"cv.pdf", "lettre.pdf"});
@@ -40,7 +40,7 @@ class ServiceNotificationTest {
   }
 
   @Test
-  void sansPiecesJointes_pasDeLigneDePieces() {
+  void un_mail_sans_pieces_jointes_n_a_pas_de_ligne_de_pieces() {
     String mail = service.envoyer("a@b.c", "c@d.e", "S", "C", false, 5, new String[] {});
     assertThat(mail).doesNotContain("Pieces jointes");
   }
@@ -53,7 +53,7 @@ class ServiceNotificationTest {
   @Disabled("Activer après avoir créé MessageEmail (record)")
   --end-student-- */
   @Test
-  void messageEmailEstUnRecord() throws Exception {
+  void la_classe_message_email_est_un_record() throws Exception {
     Class<?> cls = Class.forName("fr.univ_amu.iut.exercice5.MessageEmail");
     assertThat(cls.isRecord()).as("MessageEmail doit être un record").isTrue();
   }
@@ -62,7 +62,7 @@ class ServiceNotificationTest {
   @Disabled("Activer après avoir créé MessageEmail avec ses 7 composants")
   --end-student-- */
   @Test
-  void messageEmailA7Composants() throws Exception {
+  void la_classe_message_email_a_7_composants() throws Exception {
     Class<?> cls = Class.forName("fr.univ_amu.iut.exercice5.MessageEmail");
     assertThat(cls.getRecordComponents())
         .as(
@@ -75,7 +75,7 @@ class ServiceNotificationTest {
   @Disabled("Activer après avoir créé la nouvelle méthode envoyer(MessageEmail)")
   --end-student-- */
   @Test
-  void nouvelleSignatureAvecMessageEmail() throws Exception {
+  void la_nouvelle_signature_utilise_message_email() throws Exception {
     Class<?> messageClass = Class.forName("fr.univ_amu.iut.exercice5.MessageEmail");
     java.lang.reflect.Method envoyer =
         ServiceNotification.class.getDeclaredMethod("envoyer", messageClass);
@@ -86,7 +86,7 @@ class ServiceNotificationTest {
   @Disabled("Activer après avoir creé la nouvelle methode : elle doit produire le même format")
   --end-student-- */
   @Test
-  void nouvelleMethodeProduitLeMemeFormat() throws Exception {
+  void la_nouvelle_methode_produit_le_meme_format() throws Exception {
     Class<?> messageClass = Class.forName("fr.univ_amu.iut.exercice5.MessageEmail");
     Object message =
         messageClass
