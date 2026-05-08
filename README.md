@@ -50,32 +50,6 @@ Votre mission : appliquer le(s) refactoring(s) demandés dans le README <b>en ga
 
 Copilot Chat reste votre <b>tuteur</b> pour ce TP : il vous aidera à identifier les smells, vous suggérera le refactoring approprié, et vous guidera étape par étape sans vous donner directement le code refactoré.
 
-### Lien avec la suite du module et la SAE
-
-Ce TP est le dernier contact pédagogique avant l'examen **CC3** (mini-kata TDD sur feuille, 2 h, commun avec R2.02). Les trois semaines qui vous séparent de l'examen sont occupées par la **SAE 2.01** (développement d'une application).
-
-Dans la SAE, vous allez régulièrement devoir :
-- **Ajouter une fonctionnalité** dans du code qu'un coéquipier a écrit - pas toujours propre
-- **Corriger un bug** dans ce code - sans casser le reste
-- **Nettoyer** quand la date limite le permet
-
-C'est exactement ce que ce TP vous apprend à faire en sécurité. Le jour de l'examen, vous saurez pourquoi tel test doit être écrit avant tel autre, pourquoi une méthode extraite vaut mieux qu'un commentaire.
-
-### Prérequis
-
-#### Connaissances attendues
-
-- **Programmation orientée objet en Java** : classes, héritage, classes abstraites, polymorphisme (R2.01) - le TP4 utilise beaucoup l'héritage
-- **Collections Java** : `List`, `Map`, `Comparator` (R2.01)
-- **Git avancé** : branche par exercice, Pull Request, review, Conventional Commits (TP1)
-- **Cycle TDD** : RED-GREEN-REFACTOR, baby steps (TP2 et TP3)
-
-#### Environnement technique
-
-L'ensemble du TP se fait sur **GitHub Codespaces** -aucune installation locale n'est nécessaire. L'environnement (Java 25, Maven, Git, Copilot Chat) est pré-configuré et prêt à l'emploi dès l'ouverture du Codespace.
-
-> Pour une installation locale (facultative), voir la section [Dépannage](#dépannage) en fin de document.
-
 ### Documentation de référence
 
 - [Java 25 API Documentation](https://docs.oracle.com/en/java/javase/25/docs/api/)
@@ -85,7 +59,8 @@ L'ensemble du TP se fait sur **GitHub Codespaces** -aucune installation locale n
 
 ---
 
-## Mise en place
+<details>
+<summary><strong>Mise en place du Codespace</strong> (rappel R2.02 / TP1) - déplier si besoin</summary>
 
 La mise en place se fait en deux étapes : accepter le devoir sur GitHub Classroom (qui crée votre dépôt personnel), puis ouvrir ce dépôt dans un Codespace (votre environnement de développement dans le navigateur).
 
@@ -144,7 +119,12 @@ BUILD SUCCESS
 
 Si c'est le cas, tout est prêt. Les **tests de caractérisation** (environ 42) sont déjà actifs et **tous verts** : ils capturent le comportement actuel du code smelly et constituent votre filet de sécurité pour refactorer. Les **tests de structure** sont en attente (`Skipped`) : vous les activerez un par un au fur et à mesure de vos refactorings pour prouver que vous avez bien extrait la bonne méthode, la bonne constante, la bonne classe.
 
+</details>
+
 ---
+
+<details>
+<summary><strong>Comment vous êtes évalué·e</strong> (autograding /1000, mode refactoring 100/100/800) - déplier si besoin</summary>
 
 ## Rendu du travail et évaluation
 
@@ -174,9 +154,12 @@ Points 250/1000
 
 Vous pouvez aussi voir le détail test par test pour savoir exactement quels exercices sont validés et lesquels restent à faire.
 
+</details>
+
 ---
 
-## Commandes essentielles
+<details>
+<summary><strong>Commandes Maven essentielles</strong> (rappel R2.02) - déplier si besoin</summary>
 
 **Maven** est un outil de construction de projets Java utilisé dans la majorité des projets professionnels. Il gère automatiquement la compilation du code, le téléchargement des bibliothèques nécessaires (JUnit, AssertJ, Mockito, ApprovalTests...), l'exécution des tests et le packaging de l'application. Plutôt que de lancer `javac` et `java` à la main avec des dizaines d'options, une seule commande Maven suffit.
 
@@ -193,9 +176,12 @@ Dans ce projet, Maven est embarqué via un **Maven Wrapper** (`./mvnw`) : un scr
 > [!NOTE]
 > Le code est aussi formaté **automatiquement** avant chaque commit via un hook pre-commit invisible. Il n'est pas nécessaire de lancer `spotless:apply` à la main, sauf pour vérifier visuellement le formatage avant un commit.
 
+</details>
+
 ---
 
-## Workflow de refactoring
+<details>
+<summary><strong>Workflow de refactoring par exercice</strong> (tests verts d'abord, puis transformer sans casser) - déplier si besoin</summary>
 
 Chaque exercice suit le même cycle. Contrairement à un TP TDD où vous écrivez du code pour faire passer un test rouge, en refactoring **les tests de caractérisation sont déjà verts dès le départ** : ils capturent le comportement du code smelly. Votre mission est de transformer ce code sans jamais casser ces tests verts, puis de débloquer progressivement les tests de structure.
 
@@ -267,9 +253,12 @@ Votre score sur GitHub Actions augmente à chaque exercice terminé. Vous pouvez
 > [!TIP]
 > **Copilot Chat** est là pour vous accompagner à chaque étape. N'hésitez pas à lui poser des questions - il vous guidera sans donner la solution directement.
 
+</details>
+
 ---
 
-## Assistance IA
+<details>
+<summary><strong>Copilot Chat comme tuteur</strong> (rappel R2.02 / TP1) - déplier si besoin</summary>
 
 Vous avez le droit d'utiliser **Copilot Chat** (panneau latéral dans VS Code) quand vous bloquez sur un exercice. Il est configuré spécifiquement pour ce TP : il ne donnera pas la solution directement, mais vous guidera par étapes : d'abord une explication du concept, puis un pointeur vers la documentation, et seulement en dernier recours un minimum de code.
 
@@ -280,6 +269,8 @@ Vous avez le droit d'utiliser **Copilot Chat** (panneau latéral dans VS Code) q
 **Conseil pratique** : sur les premiers exercices, n'hésitez pas à demander de l'aide pour vous familiariser avec les concepts et le workflow. Sur les exercices avancés, essayez d'aller le plus loin possible par vous-même avant de solliciter l'assistant. C'est cette progression vers l'autonomie qui vous préparera le mieux aux évaluations.
 
 Le TP est découpé en plusieurs **exercices** à faire dans l'ordre. Chaque exercice vit dans son propre sous-paquet (code et tests en miroir). L'exercice 1 est très guidé pas à pas pour vous familiariser avec l'environnement. À partir de l'exercice 2, une boucle de travail systématique est introduite que vous appliquerez pour tous les exercices suivants.
+
+</details>
 
 ---
 
@@ -315,6 +306,53 @@ Votre Codespace embarque l'extension Java officielle (Red Hat Language Server) :
 2. **Laissez l'IDE renommer pour vous** : F2 sur un nom propage partout (y compris dans les Javadoc et les tests). Ne faites jamais un rechercher-remplacer manuel pour un renommage.
 3. **Entre deux refactorings : relancez les tests** (`./mvnw test`). Un refactoring IDE a des préconditions que l'IDE vérifie, mais lui ne connaît pas votre contrat métier - les tests oui.
 4. **Quand l'IDE refuse un refactoring**, lisez le message : c'est presque toujours un vrai problème (sélection ambiguë, dépendance circulaire, nom déjà pris).
+
+---
+
+## Lire les noms de tests
+
+Tout au long du TP, les méthodes de test suivent une même structure de nommage que vous lirez naturellement comme une phrase française : **`<sujet>_<action>_<conséquence>`**.
+
+Quelques exemples concrets, extraits du TP :
+
+| Nom de la méthode | Lecture |
+|---|---|
+| `la_facture_vide_a_un_total_de_0` | La facture vide a un total de 0. |
+| `la_methode_somme_ht_a_ete_extraite` | La méthode `sommeHT` a été extraite (test de structure). |
+| `un_chien_fait_waouf` | Un chien fait waouf. |
+| `un_aged_brie_augmente_en_quality_avec_le_temps` | Un Aged Brie augmente en quality avec le temps. |
+| `la_constante_taux_tva_a_ete_extraite` | La constante `TAUX_TVA` a été extraite (test de structure). |
+
+**Deux familles de tests dans ce TP** :
+
+- Les **tests de caractérisation** décrivent le **comportement métier** que vous devez préserver pendant le refactoring (ex : `un_aged_brie_augmente_en_quality_avec_le_temps`). Ils sont **verts dès le départ** et doivent **le rester**.
+- Les **tests de structure** vérifient que votre **refactoring a été appliqué** (ex : `la_methode_somme_ht_a_ete_extraite`). Ils sont **désactivés au départ** et vous les activez un par un au fur et à mesure de vos transformations.
+
+**Petites règles à retenir si vous écrivez de nouveaux tests :**
+
+1. **`snake_case`** (mots séparés par `_`), pas `camelCase`. Plus lisible quand les noms s'allongent.
+2. **Verbe conjugué à la 3e personne du singulier** : *la méthode est extraite*, *la facture applique*.
+3. **Forme négative avec `sans`** plutôt que `ne ... pas` quand c'est naturel.
+4. **Pas de verbe vague** comme `fonctionne`. Préférez le verbe précis qui décrit l'effet : `retourne_X`, `extrait`, `herite_de`, `est_correctement_X`, `leve_exception`.
+5. **La longueur n'est pas un problème, la lisibilité l'est.** Un nom de dix mots qui se lit comme une phrase est meilleur qu'un nom de trois mots qui force à ouvrir le corps du test.
+
+> [!TIP]
+> Cette forme transforme vos tests en **documentation exécutable**. Quand un collègue (ou vous-même dans six mois) lit la liste des tests d'une classe, il comprend en quelques secondes ce que la classe est censée faire et garantir, sans lire une seule ligne de code de test.
+
+---
+
+## Lancer un test rapidement (CodeLens)
+
+Au-dessus de chaque méthode `@Test` dans VS Code, un lien cliquable **Run Test** apparaît. Il lance le test courant en une seconde, sans avoir à taper de commande Maven.
+
+![CodeLens Run Test au-dessus d'une méthode @Test](src/main/resources/assets/codelens_run_test.png)
+
+- **Run Test** au-dessus de la méthode : exécute **ce seul test**. Idéal pour la boucle "petit pas + un test + commit".
+- **Run Test** au-dessus de la classe : exécute **tous les tests du fichier**.
+- Le résultat s'affiche dans le panneau **Test Results** en bas, avec un point vert ou rouge à côté de chaque méthode dans l'arborescence à gauche.
+
+> [!TIP]
+> Pendant le TP, gardez le réflexe **CodeLens entre deux refactorings** (vérifier qu'aucun test de caractérisation n'est cassé en moins d'une seconde) et `./mvnw test` (depuis le terminal) **avant chaque commit** pour relancer toute la suite de tous les exercices.
 
 ---
 
@@ -554,85 +592,6 @@ Règle pratique : à la fin de chaque étape de refactoring, **F5** lance Maven 
 - [AssertJ Core Documentation](https://assertj.github.io/doc/)
 - [ApprovalTests Java](https://github.com/approvals/ApprovalTests.Java)
 - [Mockito Documentation](https://site.mockito.org)
-
----
-
-## Dépannage
-
-**Le premier `./mvnw` prend plusieurs minutes** -c'est normal. Le wrapper télécharge Maven 3.9.14 puis toutes les dépendances (JUnit, AssertJ, Mockito, ApprovalTests). Les exécutions suivantes utilisent le cache local et sont quasi instantanées.
-
-**`./mvnw: Permission denied`** -après certains clones, le bit exécutable peut être perdu. Corrigez avec :
-```bash
-chmod +x mvnw
-```
-
-**`java: command not found` ou version < 25** -ce problème ne devrait pas se produire dans un Codespace. En cas d'installation locale, voir ci-dessous.
-
-**Sous Windows, `./mvnw ...` ne fonctionne pas** - utilisez `mvnw.cmd` à la place :
-```powershell
-.\mvnw.cmd test
-```
-
-**`Cannot resolve symbol` ou imports manquants** - votre IDE signale des erreurs en rouge sur des classes JUnit ou AssertJ. Cela arrive quand le projet n'a pas encore été indexé. Lancez :
-```bash
-./mvnw compile
-```
-Cette commande force le téléchargement des dépendances et la recompilation. L'IDE se resynchronise ensuite automatiquement (peut nécessiter quelques secondes).
-
-**Branche créée depuis le mauvais point de départ** - vous avez créé votre branche `exerciceN` alors que vous étiez déjà sur une branche d'exercice précédent. Pour corriger sans perdre votre travail :
-```bash
-# Sauvegardez votre travail en cours (optionnel si déjà commité)
-git stash
-# Retournez sur main
-git checkout main
-git pull
-# Recréez la branche depuis main
-git checkout -b exerciceN
-# Récupérez votre travail si nécessaire
-git stash pop
-```
-
-**Conflits Git au merge** - si GitHub vous signale des conflits lors de la fusion d'une PR, c'est souvent que `main` a avancé depuis la création de votre branche. Résolvez en local :
-```bash
-git checkout main
-git pull
-git checkout exerciceN
-git rebase main
-# Résolvez les conflits dans les fichiers signalés, puis :
-git rebase --continue
-git push --force-with-lease origin exerciceN
-```
-
----
-
-<details>
-<summary>📦 Installation locale (facultative) -pour travailler en dehors du Codespace</summary>
-
-**Sur les machines de l'IUT** (Linux, SDKMAN pré-installé) :
-
-```bash
-sdk install java 25-zulu
-```
-
-**Chez vous sous Linux / macOS** -installez d'abord SDKMAN depuis [sdkman.io](https://sdkman.io), puis la commande ci-dessus.
-
-**Windows** -via [Scoop](https://scoop.sh) :
-
-```powershell
-scoop bucket add java
-scoop install java/zulu25-jdk
-```
-
-Alternative Windows : installateur GUI sur [azul.com/downloads](https://www.azul.com/downloads/?package=jdk&version=25).
-
-**Vérifier l'installation** :
-
-```bash
-java -version
-# doit afficher "openjdk version \"25.0.x\"" ou similaire
-```
-
-</details>
 
 ---
 
