@@ -68,7 +68,7 @@ La mise en place se fait en deux étapes : accepter le devoir sur GitHub Classro
 
 1. Cliquez sur le lien suivant :
 
-   👉 **https://classroom.github.com/a/ApDTiHdo**
+   👉 **https://classroom.github.com/a/oXWVrGmZ**
 
 2. Si c'est votre première utilisation de GitHub Classroom, autorisez l'accès à votre compte GitHub.
 3. Sélectionnez votre nom dans la liste des étudiants (si elle apparaît) pour associer votre compte GitHub à votre identité dans le cours.
