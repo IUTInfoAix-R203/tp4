@@ -1,0 +1,879 @@
+# GitHub Classroom autograding workflow.
+# Le bloc autograding (steps Classroom + reporter) est régénéré par
+# update-autograding.sh en fonction des sous-paquets d'exercices
+# détectés. Ne pas éditer à la main le bloc entre marqueurs.
+name: GitHub Classroom Workflow
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+
+# Sérialise les runs de notation d'une même ref. Sans ça, plusieurs pushes/merges
+# rapprochés (ex. fusionner 6 PR en < 2 min) lancent des runs concurrents qui se
+# marchent dessus sur le cache des rapports Surefire (read-modify-write) : chaque
+# run restaure l'instantané le plus récent AU MOMENT de son démarrage, puis le
+# réécrit À LA FIN. Comme les runs se chevauchent, le « dernier qui écrit »
+# republie un instantané périmé où les rapports d'exercices traités en parallèle
+# manquent ou sont restés `skipped` -> ces exercices sont notés 0 à tort.
+# En sérialisant, chaque run restaure le cache COMPLET du run précédent.
+concurrency:
+  group: autograding-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Autograding
+    if: github.repository != 'IUTInfoAix-R203/template-tp-java'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'zulu'
+          cache: maven
+
+      #@@@AUTOGRADING-BEGIN@@@ (bloc auto-généré par l'outillage enseignant, ne pas éditer à la main)
+      - name: Compilation
+        id: compilation
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: Compilation
+          setup-command: ""
+          command: ./mvnw -B -q compile
+          timeout: 5
+          max-score: 100
+
+      - name: Restaurer le cache des rapports Surefire
+        id: surefire_cache
+        uses: actions/cache/restore@v6
+        with:
+          path: target/surefire-reports
+          key: surefire-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            surefire-${{ github.ref_name }}-
+            surefire-main-
+
+      - name: Détecter les exercices impactés
+        id: scope
+        run: |
+          set +e
+          BEFORE="${{ github.event.before }}"
+          # Cache vide (premier run, expiration GHA) -> regrade complet sinon les
+          # XMLs absents donneraient un score 0 à tout le monde.
+          if [ ! -d target/surefire-reports ] || [ -z "$(ls -A target/surefire-reports 2>/dev/null)" ]; then
+            echo "filter=ALL" >> "$GITHUB_OUTPUT"
+            echo "reason=cache des rapports absent ou expiré" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Premier push sur la branche, ou commit base introuvable -> tout regrader
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            echo "filter=ALL" >> "$GITHUB_OUTPUT"
+            echo "reason=premier push sur la branche ou commit base introuvable" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Fichiers globaux : invalident le cache (regrade complet)
+          if git diff --name-only "$BEFORE" HEAD -- \
+              pom.xml \
+              '.github/workflows/**' \
+              '*.sh' \
+              'src/main/java/fr/univ_amu/iut/App.java' \
+              'src/main/java/fr/univ_amu/iut/module-info.java' \
+              'src/test/java/fr/univ_amu/iut/AppTest.java' \
+              | grep -q .; then
+            echo "filter=ALL" >> "$GITHUB_OUTPUT"
+            echo "reason=fichier global modifié (pom.xml / App / workflows / scripts)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Détection fine : paquets exerciceN / bonusN modifiés
+          pkgs=$(git diff --name-only "$BEFORE" HEAD -- \
+              'src/main/java/fr/univ_amu/iut/exercice*/**' \
+              'src/test/java/fr/univ_amu/iut/exercice*/**' \
+              'src/main/java/fr/univ_amu/iut/bonus*/**' \
+              'src/test/java/fr/univ_amu/iut/bonus*/**' \
+              | grep -oE 'fr/univ_amu/iut/(exercice[0-9]+|bonus[0-9]+)' \
+              | sort -u | tr '/' '.')
+          if [ -z "$pkgs" ]; then
+            echo "filter=NONE" >> "$GITHUB_OUTPUT"
+            echo "reason=aucune source d'exercice modifiée (mvnw test sauté, scores restaurés du cache)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Énumère les classes de test des paquets impactés (FQCN explicites)
+          classes=""
+          for pkg in $pkgs; do
+            pkg_dir="src/test/java/$(echo "$pkg" | tr '.' '/')"
+            while IFS= read -r f; do
+              cls=$(basename "$f" .java)
+              classes="${classes}${classes:+,}${pkg}.${cls}"
+            done < <(find "$pkg_dir" -type f -name '*.java' 2>/dev/null)
+          done
+          if [ -z "$classes" ]; then
+            echo "filter=NONE" >> "$GITHUB_OUTPUT"
+            echo "reason=paquets modifiés mais aucune classe de test trouvée" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "filter=$classes" >> "$GITHUB_OUTPUT"
+          echo "reason=paquets impactés : $(echo $pkgs | tr '\\n' ' ')" >> "$GITHUB_OUTPUT"
+
+      - name: Lancer les tests impactés
+        id: run_tests
+        if: steps.scope.outputs.filter != 'NONE'
+        continue-on-error: true
+        run: |
+          echo "Scope : ${{ steps.scope.outputs.reason }}"
+          if [ "${{ steps.scope.outputs.filter }}" = "ALL" ]; then
+            ./mvnw -B test -DfailIfNoTests=false
+          else
+            ./mvnw -B test -Dtest='${{ steps.scope.outputs.filter }}' -DfailIfNoTests=false
+          fi
+
+      - name: "exercice1 : la_facture_vide_a_un_total_de_0"
+        id: exercice1_la_facture_vide_a_un_total_de_0
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice1 : la_facture_vide_a_un_total_de_0"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice1.FactureTest la_facture_vide_a_un_total_de_0
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice1 : la_facture_avec_un_seul_article_sous_le_seuil_applique_la_tva_sans_remise"
+        id: exercice1_la_facture_avec_un_seul_article_sous_le_seuil_applique_la_tva_sans_remise
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice1 : la_facture_avec_un_seul_article_sous_le_seuil_applique_la_tva_sans_remise"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice1.FactureTest la_facture_avec_un_seul_article_sous_le_seuil_applique_la_tva_sans_remise
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice1 : la_facture_avec_un_seul_article_sur_le_seuil_applique_la_tva_et_la_remise"
+        id: exercice1_la_facture_avec_un_seul_article_sur_le_seuil_applique_la_tva_et_la_remise
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice1 : la_facture_avec_un_seul_article_sur_le_seuil_applique_la_tva_et_la_remise"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice1.FactureTest la_facture_avec_un_seul_article_sur_le_seuil_applique_la_tva_et_la_remise
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice1 : la_facture_avec_plusieurs_articles_agrege_correctement"
+        id: exercice1_la_facture_avec_plusieurs_articles_agrege_correctement
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice1 : la_facture_avec_plusieurs_articles_agrege_correctement"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice1.FactureTest la_facture_avec_plusieurs_articles_agrege_correctement
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice1 : la_facture_avec_un_total_exactement_a_100_ne_declenche_pas_la_remise"
+        id: exercice1_la_facture_avec_un_total_exactement_a_100_ne_declenche_pas_la_remise
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice1 : la_facture_avec_un_total_exactement_a_100_ne_declenche_pas_la_remise"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice1.FactureTest la_facture_avec_un_total_exactement_a_100_ne_declenche_pas_la_remise
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice1 : la_methode_somme_ht_a_ete_extraite"
+        id: exercice1_la_methode_somme_ht_a_ete_extraite
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice1 : la_methode_somme_ht_a_ete_extraite"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice1.FactureTest la_methode_somme_ht_a_ete_extraite
+          timeout: 5
+          max-score: 34
+
+      - name: "exercice1 : la_methode_appliquer_tva_a_ete_extraite"
+        id: exercice1_la_methode_appliquer_tva_a_ete_extraite
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice1 : la_methode_appliquer_tva_a_ete_extraite"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice1.FactureTest la_methode_appliquer_tva_a_ete_extraite
+          timeout: 5
+          max-score: 34
+
+      - name: "exercice1 : la_methode_appliquer_remise_a_ete_extraite"
+        id: exercice1_la_methode_appliquer_remise_a_ete_extraite
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice1 : la_methode_appliquer_remise_a_ete_extraite"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice1.FactureTest la_methode_appliquer_remise_a_ete_extraite
+          timeout: 5
+          max-score: 34
+
+      - name: "exercice1 : la_methode_calculer_total_est_courte_apres_extraction"
+        id: exercice1_la_methode_calculer_total_est_courte_apres_extraction
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice1 : la_methode_calculer_total_est_courte_apres_extraction"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice1.FactureTest la_methode_calculer_total_est_courte_apres_extraction
+          timeout: 5
+          max-score: 34
+
+      - name: "exercice2 : un_montant_nul_retourne_les_frais_de_port"
+        id: exercice2_un_montant_nul_retourne_les_frais_de_port
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice2 : un_montant_nul_retourne_les_frais_de_port"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice2.CalculPrixTest un_montant_nul_retourne_les_frais_de_port
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice2 : un_petit_montant_sous_le_seuil_des_frais_de_port_ajoute_les_frais_de_port"
+        id: exercice2_un_petit_montant_sous_le_seuil_des_frais_de_port_ajoute_les_frais_de_port
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice2 : un_petit_montant_sous_le_seuil_des_frais_de_port_ajoute_les_frais_de_port"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice2.CalculPrixTest un_petit_montant_sous_le_seuil_des_frais_de_port_ajoute_les_frais_de_port
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice2 : un_montant_au_seuil_des_frais_de_port_offre_le_port"
+        id: exercice2_un_montant_au_seuil_des_frais_de_port_offre_le_port
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice2 : un_montant_au_seuil_des_frais_de_port_offre_le_port"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice2.CalculPrixTest un_montant_au_seuil_des_frais_de_port_offre_le_port
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice2 : un_montant_moyen_d_un_client_non_fidele_n_applique_ni_remise_ni_frais_de_port"
+        id: exercice2_un_montant_moyen_d_un_client_non_fidele_n_applique_ni_remise_ni_frais_de_port
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice2 : un_montant_moyen_d_un_client_non_fidele_n_applique_ni_remise_ni_frais_de_port"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice2.CalculPrixTest un_montant_moyen_d_un_client_non_fidele_n_applique_ni_remise_ni_frais_de_port
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice2 : un_gros_montant_d_un_client_non_fidele_n_applique_pas_de_remise"
+        id: exercice2_un_gros_montant_d_un_client_non_fidele_n_applique_pas_de_remise
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice2 : un_gros_montant_d_un_client_non_fidele_n_applique_pas_de_remise"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice2.CalculPrixTest un_gros_montant_d_un_client_non_fidele_n_applique_pas_de_remise
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice2 : un_client_fidele_sous_le_seuil_de_remise_n_applique_pas_de_remise"
+        id: exercice2_un_client_fidele_sous_le_seuil_de_remise_n_applique_pas_de_remise
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice2 : un_client_fidele_sous_le_seuil_de_remise_n_applique_pas_de_remise"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice2.CalculPrixTest un_client_fidele_sous_le_seuil_de_remise_n_applique_pas_de_remise
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice2 : un_client_fidele_sur_le_seuil_de_remise_applique_la_remise"
+        id: exercice2_un_client_fidele_sur_le_seuil_de_remise_applique_la_remise
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice2 : un_client_fidele_sur_le_seuil_de_remise_applique_la_remise"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice2.CalculPrixTest un_client_fidele_sur_le_seuil_de_remise_applique_la_remise
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice2 : un_client_fidele_avec_un_gros_montant_applique_la_remise"
+        id: exercice2_un_client_fidele_avec_un_gros_montant_applique_la_remise
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice2 : un_client_fidele_avec_un_gros_montant_applique_la_remise"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice2.CalculPrixTest un_client_fidele_avec_un_gros_montant_applique_la_remise
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice2 : la_constante_taux_tva_a_ete_extraite"
+        id: exercice2_la_constante_taux_tva_a_ete_extraite
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice2 : la_constante_taux_tva_a_ete_extraite"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice2.CalculPrixTest la_constante_taux_tva_a_ete_extraite
+          timeout: 5
+          max-score: 34
+
+      - name: "exercice2 : la_constante_seuil_remise_a_ete_extraite"
+        id: exercice2_la_constante_seuil_remise_a_ete_extraite
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice2 : la_constante_seuil_remise_a_ete_extraite"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice2.CalculPrixTest la_constante_seuil_remise_a_ete_extraite
+          timeout: 5
+          max-score: 34
+
+      - name: "exercice2 : la_constante_taux_remise_a_ete_extraite"
+        id: exercice2_la_constante_taux_remise_a_ete_extraite
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice2 : la_constante_taux_remise_a_ete_extraite"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice2.CalculPrixTest la_constante_taux_remise_a_ete_extraite
+          timeout: 5
+          max-score: 34
+
+      - name: "exercice2 : la_constante_seuil_frais_port_a_ete_extraite"
+        id: exercice2_la_constante_seuil_frais_port_a_ete_extraite
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice2 : la_constante_seuil_frais_port_a_ete_extraite"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice2.CalculPrixTest la_constante_seuil_frais_port_a_ete_extraite
+          timeout: 5
+          max-score: 34
+
+      - name: "exercice2 : la_constante_montant_frais_port_a_ete_extraite"
+        id: exercice2_la_constante_montant_frais_port_a_ete_extraite
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice2 : la_constante_montant_frais_port_a_ete_extraite"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice2.CalculPrixTest la_constante_montant_frais_port_a_ete_extraite
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice3 : afficher_un_menu_vide_retourne_l_entete"
+        id: exercice3_afficher_un_menu_vide_retourne_l_entete
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice3 : afficher_un_menu_vide_retourne_l_entete"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice3.MenuTest afficher_un_menu_vide_retourne_l_entete
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice3 : afficher_deux_options_les_liste_dans_l_ordre_d_insertion"
+        id: exercice3_afficher_deux_options_les_liste_dans_l_ordre_d_insertion
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice3 : afficher_deux_options_les_liste_dans_l_ordre_d_insertion"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice3.MenuTest afficher_deux_options_les_liste_dans_l_ordre_d_insertion
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice3 : choisir_une_option_execute_l_action"
+        id: exercice3_choisir_une_option_execute_l_action
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice3 : choisir_une_option_execute_l_action"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice3.MenuTest choisir_une_option_execute_l_action
+          timeout: 5
+          max-score: 3
+
+      - name: "exercice3 : choisir_un_indice_invalide_leve_une_exception"
+        id: exercice3_choisir_un_indice_invalide_leve_une_exception
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice3 : choisir_un_indice_invalide_leve_une_exception"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice3.MenuTest choisir_un_indice_invalide_leve_une_exception
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice3 : afficher_l_historique_vide_retourne_l_entete_seul"
+        id: exercice3_afficher_l_historique_vide_retourne_l_entete_seul
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice3 : afficher_l_historique_vide_retourne_l_entete_seul"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice3.MenuTest afficher_l_historique_vide_retourne_l_entete_seul
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice3 : afficher_l_historique_apres_quelques_choix_les_liste_dans_l_ordre"
+        id: exercice3_afficher_l_historique_apres_quelques_choix_les_liste_dans_l_ordre
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice3 : afficher_l_historique_apres_quelques_choix_les_liste_dans_l_ordre"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice3.MenuTest afficher_l_historique_apres_quelques_choix_les_liste_dans_l_ordre
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice3 : l_historique_est_tronque_a_10_le_onzieme_chasse_le_premier"
+        id: exercice3_l_historique_est_tronque_a_10_le_onzieme_chasse_le_premier
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice3 : l_historique_est_tronque_a_10_le_onzieme_chasse_le_premier"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice3.MenuTest l_historique_est_tronque_a_10_le_onzieme_chasse_le_premier
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice3 : la_classe_historique_existe"
+        id: exercice3_la_classe_historique_existe
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice3 : la_classe_historique_existe"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice3.MenuTest la_classe_historique_existe
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice3 : la_classe_historique_a_les_trois_methodes_attendues"
+        id: exercice3_la_classe_historique_a_les_trois_methodes_attendues
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice3 : la_classe_historique_a_les_trois_methodes_attendues"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice3.MenuTest la_classe_historique_a_les_trois_methodes_attendues
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice3 : le_menu_utilise_un_champ_de_type_historique"
+        id: exercice3_le_menu_utilise_un_champ_de_type_historique
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice3 : le_menu_utilise_un_champ_de_type_historique"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice3.MenuTest le_menu_utilise_un_champ_de_type_historique
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice4 : un_chien_fait_wouaf"
+        id: exercice4_un_chien_fait_wouaf
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice4 : un_chien_fait_wouaf"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice4.AnimalTest un_chien_fait_wouaf
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice4 : un_chat_fait_miaou"
+        id: exercice4_un_chat_fait_miaou
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice4 : un_chat_fait_miaou"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice4.AnimalTest un_chat_fait_miaou
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice4 : une_vache_fait_meuh"
+        id: exercice4_une_vache_fait_meuh
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice4 : une_vache_fait_meuh"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice4.AnimalTest une_vache_fait_meuh
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice4 : un_canard_fait_coin_coin"
+        id: exercice4_un_canard_fait_coin_coin
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice4 : un_canard_fait_coin_coin"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice4.AnimalTest un_canard_fait_coin_coin
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice4 : le_champ_nom_est_accessible"
+        id: exercice4_le_champ_nom_est_accessible
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice4 : le_champ_nom_est_accessible"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice4.AnimalTest le_champ_nom_est_accessible
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice4 : la_classe_animal_est_abstract"
+        id: exercice4_la_classe_animal_est_abstract
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice4 : la_classe_animal_est_abstract"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice4.AnimalTest la_classe_animal_est_abstract
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice4 : la_classe_chien_herite_d_animal"
+        id: exercice4_la_classe_chien_herite_d_animal
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice4 : la_classe_chien_herite_d_animal"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice4.AnimalTest la_classe_chien_herite_d_animal
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice4 : toutes_les_especes_ont_leur_propre_classe"
+        id: exercice4_toutes_les_especes_ont_leur_propre_classe
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice4 : toutes_les_especes_ont_leur_propre_classe"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice4.AnimalTest toutes_les_especes_ont_leur_propre_classe
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice4 : le_champ_type_string_a_ete_supprime"
+        id: exercice4_le_champ_type_string_a_ete_supprime
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice4 : le_champ_type_string_a_ete_supprime"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice4.AnimalTest le_champ_type_string_a_ete_supprime
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice4 : la_fabrique_cree_la_bonne_espece"
+        id: exercice4_la_fabrique_cree_la_bonne_espece
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice4 : la_fabrique_cree_la_bonne_espece"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice4.AnimalTest la_fabrique_cree_la_bonne_espece
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice5 : un_mail_minimal_sans_importance_sans_pieces_jointes"
+        id: exercice5_un_mail_minimal_sans_importance_sans_pieces_jointes
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice5 : un_mail_minimal_sans_importance_sans_pieces_jointes"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice5.ServiceNotificationTest un_mail_minimal_sans_importance_sans_pieces_jointes
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice5 : un_mail_important_affiche_le_tag"
+        id: exercice5_un_mail_important_affiche_le_tag
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice5 : un_mail_important_affiche_le_tag"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice5.ServiceNotificationTest un_mail_important_affiche_le_tag
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice5 : les_pieces_jointes_sont_listees"
+        id: exercice5_les_pieces_jointes_sont_listees
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice5 : les_pieces_jointes_sont_listees"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice5.ServiceNotificationTest les_pieces_jointes_sont_listees
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice5 : un_mail_sans_pieces_jointes_n_a_pas_de_ligne_de_pieces"
+        id: exercice5_un_mail_sans_pieces_jointes_n_a_pas_de_ligne_de_pieces
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice5 : un_mail_sans_pieces_jointes_n_a_pas_de_ligne_de_pieces"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice5.ServiceNotificationTest un_mail_sans_pieces_jointes_n_a_pas_de_ligne_de_pieces
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice5 : la_classe_message_email_est_un_record"
+        id: exercice5_la_classe_message_email_est_un_record
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice5 : la_classe_message_email_est_un_record"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice5.ServiceNotificationTest la_classe_message_email_est_un_record
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice5 : la_classe_message_email_a_7_composants"
+        id: exercice5_la_classe_message_email_a_7_composants
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice5 : la_classe_message_email_a_7_composants"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice5.ServiceNotificationTest la_classe_message_email_a_7_composants
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice5 : la_nouvelle_signature_utilise_message_email"
+        id: exercice5_la_nouvelle_signature_utilise_message_email
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice5 : la_nouvelle_signature_utilise_message_email"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice5.ServiceNotificationTest la_nouvelle_signature_utilise_message_email
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice5 : la_nouvelle_methode_produit_le_meme_format"
+        id: exercice5_la_nouvelle_methode_produit_le_meme_format
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice5 : la_nouvelle_methode_produit_le_meme_format"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice5.ServiceNotificationTest la_nouvelle_methode_produit_le_meme_format
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice6 : un_item_normal_avant_peremption_baisse_quality_de_1_et_sellin_de_1"
+        id: exercice6_un_item_normal_avant_peremption_baisse_quality_de_1_et_sellin_de_1
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_item_normal_avant_peremption_baisse_quality_de_1_et_sellin_de_1"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_item_normal_avant_peremption_baisse_quality_de_1_et_sellin_de_1
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice6 : un_item_normal_apres_peremption_baisse_quality_de_2"
+        id: exercice6_un_item_normal_apres_peremption_baisse_quality_de_2
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_item_normal_apres_peremption_baisse_quality_de_2"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_item_normal_apres_peremption_baisse_quality_de_2
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice6 : un_item_normal_ne_voit_jamais_sa_quality_devenir_negative"
+        id: exercice6_un_item_normal_ne_voit_jamais_sa_quality_devenir_negative
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_item_normal_ne_voit_jamais_sa_quality_devenir_negative"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_item_normal_ne_voit_jamais_sa_quality_devenir_negative
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice6 : un_aged_brie_augmente_en_quality_avec_le_temps"
+        id: exercice6_un_aged_brie_augmente_en_quality_avec_le_temps
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_aged_brie_augmente_en_quality_avec_le_temps"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_aged_brie_augmente_en_quality_avec_le_temps
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice6 : un_aged_brie_apres_peremption_augmente_deux_fois_plus_vite"
+        id: exercice6_un_aged_brie_apres_peremption_augmente_deux_fois_plus_vite
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_aged_brie_apres_peremption_augmente_deux_fois_plus_vite"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_aged_brie_apres_peremption_augmente_deux_fois_plus_vite
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice6 : un_aged_brie_ne_depasse_jamais_50_en_quality"
+        id: exercice6_un_aged_brie_ne_depasse_jamais_50_en_quality
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_aged_brie_ne_depasse_jamais_50_en_quality"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_aged_brie_ne_depasse_jamais_50_en_quality
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice6 : un_sulfuras_n_est_jamais_vendu_ni_degrade"
+        id: exercice6_un_sulfuras_n_est_jamais_vendu_ni_degrade
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_sulfuras_n_est_jamais_vendu_ni_degrade"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_sulfuras_n_est_jamais_vendu_ni_degrade
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice6 : un_sulfuras_conserve_sa_quality_quelle_que_soit_la_date"
+        id: exercice6_un_sulfuras_conserve_sa_quality_quelle_que_soit_la_date
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_sulfuras_conserve_sa_quality_quelle_que_soit_la_date"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_sulfuras_conserve_sa_quality_quelle_que_soit_la_date
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice6 : un_backstage_a_plus_de_10_jours_augmente_de_1"
+        id: exercice6_un_backstage_a_plus_de_10_jours_augmente_de_1
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_backstage_a_plus_de_10_jours_augmente_de_1"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_backstage_a_plus_de_10_jours_augmente_de_1
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice6 : un_backstage_a_10_jours_ou_moins_augmente_de_2"
+        id: exercice6_un_backstage_a_10_jours_ou_moins_augmente_de_2
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_backstage_a_10_jours_ou_moins_augmente_de_2"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_backstage_a_10_jours_ou_moins_augmente_de_2
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice6 : un_backstage_a_5_jours_ou_moins_augmente_de_3"
+        id: exercice6_un_backstage_a_5_jours_ou_moins_augmente_de_3
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_backstage_a_5_jours_ou_moins_augmente_de_3"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_backstage_a_5_jours_ou_moins_augmente_de_3
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice6 : un_backstage_apres_le_concert_tombe_a_zero"
+        id: exercice6_un_backstage_apres_le_concert_tombe_a_zero
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_backstage_apres_le_concert_tombe_a_zero"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_backstage_apres_le_concert_tombe_a_zero
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice6 : un_backstage_ne_depasse_pas_50"
+        id: exercice6_un_backstage_ne_depasse_pas_50
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_backstage_ne_depasse_pas_50"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_backstage_ne_depasse_pas_50
+          timeout: 5
+          max-score: 2
+
+      - name: "exercice6 : un_conjured_avant_peremption_baisse_de_2"
+        id: exercice6_un_conjured_avant_peremption_baisse_de_2
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_conjured_avant_peremption_baisse_de_2"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_conjured_avant_peremption_baisse_de_2
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice6 : un_conjured_apres_peremption_baisse_de_4"
+        id: exercice6_un_conjured_apres_peremption_baisse_de_4
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_conjured_apres_peremption_baisse_de_4"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_conjured_apres_peremption_baisse_de_4
+          timeout: 5
+          max-score: 33
+
+      - name: "exercice6 : un_conjured_ne_devient_pas_negatif"
+        id: exercice6_un_conjured_ne_devient_pas_negatif
+        uses: IUTInfoAix-R202/autograding-command-grader@main
+        with:
+          test-name: "exercice6 : un_conjured_ne_devient_pas_negatif"
+          setup-command: ""
+          command: ./grade-test.sh fr.univ_amu.iut.exercice6.GildedRoseTest un_conjured_ne_devient_pas_negatif
+          timeout: 5
+          max-score: 33
+
+      - name: Autograding Reporter
+        uses: IUTInfoAix-R202/autograding-grading-reporter@main
+        continue-on-error: true
+        env:
+          COMPILATION_RESULTS: "${{ steps.compilation.outputs.result }}"
+          EXERCICE1_LA_FACTURE_VIDE_A_UN_TOTAL_DE_0_RESULTS: "${{ steps.exercice1_la_facture_vide_a_un_total_de_0.outputs.result }}"
+          EXERCICE1_LA_FACTURE_AVEC_UN_SEUL_ARTICLE_SOUS_LE_SEUIL_APPLIQUE_LA_TVA_SANS_REMISE_RESULTS: "${{ steps.exercice1_la_facture_avec_un_seul_article_sous_le_seuil_applique_la_tva_sans_remise.outputs.result }}"
+          EXERCICE1_LA_FACTURE_AVEC_UN_SEUL_ARTICLE_SUR_LE_SEUIL_APPLIQUE_LA_TVA_ET_LA_REMISE_RESULTS: "${{ steps.exercice1_la_facture_avec_un_seul_article_sur_le_seuil_applique_la_tva_et_la_remise.outputs.result }}"
+          EXERCICE1_LA_FACTURE_AVEC_PLUSIEURS_ARTICLES_AGREGE_CORRECTEMENT_RESULTS: "${{ steps.exercice1_la_facture_avec_plusieurs_articles_agrege_correctement.outputs.result }}"
+          EXERCICE1_LA_FACTURE_AVEC_UN_TOTAL_EXACTEMENT_A_100_NE_DECLENCHE_PAS_LA_REMISE_RESULTS: "${{ steps.exercice1_la_facture_avec_un_total_exactement_a_100_ne_declenche_pas_la_remise.outputs.result }}"
+          EXERCICE1_LA_METHODE_SOMME_HT_A_ETE_EXTRAITE_RESULTS: "${{ steps.exercice1_la_methode_somme_ht_a_ete_extraite.outputs.result }}"
+          EXERCICE1_LA_METHODE_APPLIQUER_TVA_A_ETE_EXTRAITE_RESULTS: "${{ steps.exercice1_la_methode_appliquer_tva_a_ete_extraite.outputs.result }}"
+          EXERCICE1_LA_METHODE_APPLIQUER_REMISE_A_ETE_EXTRAITE_RESULTS: "${{ steps.exercice1_la_methode_appliquer_remise_a_ete_extraite.outputs.result }}"
+          EXERCICE1_LA_METHODE_CALCULER_TOTAL_EST_COURTE_APRES_EXTRACTION_RESULTS: "${{ steps.exercice1_la_methode_calculer_total_est_courte_apres_extraction.outputs.result }}"
+          EXERCICE2_UN_MONTANT_NUL_RETOURNE_LES_FRAIS_DE_PORT_RESULTS: "${{ steps.exercice2_un_montant_nul_retourne_les_frais_de_port.outputs.result }}"
+          EXERCICE2_UN_PETIT_MONTANT_SOUS_LE_SEUIL_DES_FRAIS_DE_PORT_AJOUTE_LES_FRAIS_DE_PORT_RESULTS: "${{ steps.exercice2_un_petit_montant_sous_le_seuil_des_frais_de_port_ajoute_les_frais_de_port.outputs.result }}"
+          EXERCICE2_UN_MONTANT_AU_SEUIL_DES_FRAIS_DE_PORT_OFFRE_LE_PORT_RESULTS: "${{ steps.exercice2_un_montant_au_seuil_des_frais_de_port_offre_le_port.outputs.result }}"
+          EXERCICE2_UN_MONTANT_MOYEN_D_UN_CLIENT_NON_FIDELE_N_APPLIQUE_NI_REMISE_NI_FRAIS_DE_PORT_RESULTS: "${{ steps.exercice2_un_montant_moyen_d_un_client_non_fidele_n_applique_ni_remise_ni_frais_de_port.outputs.result }}"
+          EXERCICE2_UN_GROS_MONTANT_D_UN_CLIENT_NON_FIDELE_N_APPLIQUE_PAS_DE_REMISE_RESULTS: "${{ steps.exercice2_un_gros_montant_d_un_client_non_fidele_n_applique_pas_de_remise.outputs.result }}"
+          EXERCICE2_UN_CLIENT_FIDELE_SOUS_LE_SEUIL_DE_REMISE_N_APPLIQUE_PAS_DE_REMISE_RESULTS: "${{ steps.exercice2_un_client_fidele_sous_le_seuil_de_remise_n_applique_pas_de_remise.outputs.result }}"
+          EXERCICE2_UN_CLIENT_FIDELE_SUR_LE_SEUIL_DE_REMISE_APPLIQUE_LA_REMISE_RESULTS: "${{ steps.exercice2_un_client_fidele_sur_le_seuil_de_remise_applique_la_remise.outputs.result }}"
+          EXERCICE2_UN_CLIENT_FIDELE_AVEC_UN_GROS_MONTANT_APPLIQUE_LA_REMISE_RESULTS: "${{ steps.exercice2_un_client_fidele_avec_un_gros_montant_applique_la_remise.outputs.result }}"
+          EXERCICE2_LA_CONSTANTE_TAUX_TVA_A_ETE_EXTRAITE_RESULTS: "${{ steps.exercice2_la_constante_taux_tva_a_ete_extraite.outputs.result }}"
+          EXERCICE2_LA_CONSTANTE_SEUIL_REMISE_A_ETE_EXTRAITE_RESULTS: "${{ steps.exercice2_la_constante_seuil_remise_a_ete_extraite.outputs.result }}"
+          EXERCICE2_LA_CONSTANTE_TAUX_REMISE_A_ETE_EXTRAITE_RESULTS: "${{ steps.exercice2_la_constante_taux_remise_a_ete_extraite.outputs.result }}"
+          EXERCICE2_LA_CONSTANTE_SEUIL_FRAIS_PORT_A_ETE_EXTRAITE_RESULTS: "${{ steps.exercice2_la_constante_seuil_frais_port_a_ete_extraite.outputs.result }}"
+          EXERCICE2_LA_CONSTANTE_MONTANT_FRAIS_PORT_A_ETE_EXTRAITE_RESULTS: "${{ steps.exercice2_la_constante_montant_frais_port_a_ete_extraite.outputs.result }}"
+          EXERCICE3_AFFICHER_UN_MENU_VIDE_RETOURNE_L_ENTETE_RESULTS: "${{ steps.exercice3_afficher_un_menu_vide_retourne_l_entete.outputs.result }}"
+          EXERCICE3_AFFICHER_DEUX_OPTIONS_LES_LISTE_DANS_L_ORDRE_D_INSERTION_RESULTS: "${{ steps.exercice3_afficher_deux_options_les_liste_dans_l_ordre_d_insertion.outputs.result }}"
+          EXERCICE3_CHOISIR_UNE_OPTION_EXECUTE_L_ACTION_RESULTS: "${{ steps.exercice3_choisir_une_option_execute_l_action.outputs.result }}"
+          EXERCICE3_CHOISIR_UN_INDICE_INVALIDE_LEVE_UNE_EXCEPTION_RESULTS: "${{ steps.exercice3_choisir_un_indice_invalide_leve_une_exception.outputs.result }}"
+          EXERCICE3_AFFICHER_L_HISTORIQUE_VIDE_RETOURNE_L_ENTETE_SEUL_RESULTS: "${{ steps.exercice3_afficher_l_historique_vide_retourne_l_entete_seul.outputs.result }}"
+          EXERCICE3_AFFICHER_L_HISTORIQUE_APRES_QUELQUES_CHOIX_LES_LISTE_DANS_L_ORDRE_RESULTS: "${{ steps.exercice3_afficher_l_historique_apres_quelques_choix_les_liste_dans_l_ordre.outputs.result }}"
+          EXERCICE3_L_HISTORIQUE_EST_TRONQUE_A_10_LE_ONZIEME_CHASSE_LE_PREMIER_RESULTS: "${{ steps.exercice3_l_historique_est_tronque_a_10_le_onzieme_chasse_le_premier.outputs.result }}"
+          EXERCICE3_LA_CLASSE_HISTORIQUE_EXISTE_RESULTS: "${{ steps.exercice3_la_classe_historique_existe.outputs.result }}"
+          EXERCICE3_LA_CLASSE_HISTORIQUE_A_LES_TROIS_METHODES_ATTENDUES_RESULTS: "${{ steps.exercice3_la_classe_historique_a_les_trois_methodes_attendues.outputs.result }}"
+          EXERCICE3_LE_MENU_UTILISE_UN_CHAMP_DE_TYPE_HISTORIQUE_RESULTS: "${{ steps.exercice3_le_menu_utilise_un_champ_de_type_historique.outputs.result }}"
+          EXERCICE4_UN_CHIEN_FAIT_WOUAF_RESULTS: "${{ steps.exercice4_un_chien_fait_wouaf.outputs.result }}"
+          EXERCICE4_UN_CHAT_FAIT_MIAOU_RESULTS: "${{ steps.exercice4_un_chat_fait_miaou.outputs.result }}"
+          EXERCICE4_UNE_VACHE_FAIT_MEUH_RESULTS: "${{ steps.exercice4_une_vache_fait_meuh.outputs.result }}"
+          EXERCICE4_UN_CANARD_FAIT_COIN_COIN_RESULTS: "${{ steps.exercice4_un_canard_fait_coin_coin.outputs.result }}"
+          EXERCICE4_LE_CHAMP_NOM_EST_ACCESSIBLE_RESULTS: "${{ steps.exercice4_le_champ_nom_est_accessible.outputs.result }}"
+          EXERCICE4_LA_CLASSE_ANIMAL_EST_ABSTRACT_RESULTS: "${{ steps.exercice4_la_classe_animal_est_abstract.outputs.result }}"
+          EXERCICE4_LA_CLASSE_CHIEN_HERITE_D_ANIMAL_RESULTS: "${{ steps.exercice4_la_classe_chien_herite_d_animal.outputs.result }}"
+          EXERCICE4_TOUTES_LES_ESPECES_ONT_LEUR_PROPRE_CLASSE_RESULTS: "${{ steps.exercice4_toutes_les_especes_ont_leur_propre_classe.outputs.result }}"
+          EXERCICE4_LE_CHAMP_TYPE_STRING_A_ETE_SUPPRIME_RESULTS: "${{ steps.exercice4_le_champ_type_string_a_ete_supprime.outputs.result }}"
+          EXERCICE4_LA_FABRIQUE_CREE_LA_BONNE_ESPECE_RESULTS: "${{ steps.exercice4_la_fabrique_cree_la_bonne_espece.outputs.result }}"
+          EXERCICE5_UN_MAIL_MINIMAL_SANS_IMPORTANCE_SANS_PIECES_JOINTES_RESULTS: "${{ steps.exercice5_un_mail_minimal_sans_importance_sans_pieces_jointes.outputs.result }}"
+          EXERCICE5_UN_MAIL_IMPORTANT_AFFICHE_LE_TAG_RESULTS: "${{ steps.exercice5_un_mail_important_affiche_le_tag.outputs.result }}"
+          EXERCICE5_LES_PIECES_JOINTES_SONT_LISTEES_RESULTS: "${{ steps.exercice5_les_pieces_jointes_sont_listees.outputs.result }}"
+          EXERCICE5_UN_MAIL_SANS_PIECES_JOINTES_N_A_PAS_DE_LIGNE_DE_PIECES_RESULTS: "${{ steps.exercice5_un_mail_sans_pieces_jointes_n_a_pas_de_ligne_de_pieces.outputs.result }}"
+          EXERCICE5_LA_CLASSE_MESSAGE_EMAIL_EST_UN_RECORD_RESULTS: "${{ steps.exercice5_la_classe_message_email_est_un_record.outputs.result }}"
+          EXERCICE5_LA_CLASSE_MESSAGE_EMAIL_A_7_COMPOSANTS_RESULTS: "${{ steps.exercice5_la_classe_message_email_a_7_composants.outputs.result }}"
+          EXERCICE5_LA_NOUVELLE_SIGNATURE_UTILISE_MESSAGE_EMAIL_RESULTS: "${{ steps.exercice5_la_nouvelle_signature_utilise_message_email.outputs.result }}"
+          EXERCICE5_LA_NOUVELLE_METHODE_PRODUIT_LE_MEME_FORMAT_RESULTS: "${{ steps.exercice5_la_nouvelle_methode_produit_le_meme_format.outputs.result }}"
+          EXERCICE6_UN_ITEM_NORMAL_AVANT_PEREMPTION_BAISSE_QUALITY_DE_1_ET_SELLIN_DE_1_RESULTS: "${{ steps.exercice6_un_item_normal_avant_peremption_baisse_quality_de_1_et_sellin_de_1.outputs.result }}"
+          EXERCICE6_UN_ITEM_NORMAL_APRES_PEREMPTION_BAISSE_QUALITY_DE_2_RESULTS: "${{ steps.exercice6_un_item_normal_apres_peremption_baisse_quality_de_2.outputs.result }}"
+          EXERCICE6_UN_ITEM_NORMAL_NE_VOIT_JAMAIS_SA_QUALITY_DEVENIR_NEGATIVE_RESULTS: "${{ steps.exercice6_un_item_normal_ne_voit_jamais_sa_quality_devenir_negative.outputs.result }}"
+          EXERCICE6_UN_AGED_BRIE_AUGMENTE_EN_QUALITY_AVEC_LE_TEMPS_RESULTS: "${{ steps.exercice6_un_aged_brie_augmente_en_quality_avec_le_temps.outputs.result }}"
+          EXERCICE6_UN_AGED_BRIE_APRES_PEREMPTION_AUGMENTE_DEUX_FOIS_PLUS_VITE_RESULTS: "${{ steps.exercice6_un_aged_brie_apres_peremption_augmente_deux_fois_plus_vite.outputs.result }}"
+          EXERCICE6_UN_AGED_BRIE_NE_DEPASSE_JAMAIS_50_EN_QUALITY_RESULTS: "${{ steps.exercice6_un_aged_brie_ne_depasse_jamais_50_en_quality.outputs.result }}"
+          EXERCICE6_UN_SULFURAS_N_EST_JAMAIS_VENDU_NI_DEGRADE_RESULTS: "${{ steps.exercice6_un_sulfuras_n_est_jamais_vendu_ni_degrade.outputs.result }}"
+          EXERCICE6_UN_SULFURAS_CONSERVE_SA_QUALITY_QUELLE_QUE_SOIT_LA_DATE_RESULTS: "${{ steps.exercice6_un_sulfuras_conserve_sa_quality_quelle_que_soit_la_date.outputs.result }}"
+          EXERCICE6_UN_BACKSTAGE_A_PLUS_DE_10_JOURS_AUGMENTE_DE_1_RESULTS: "${{ steps.exercice6_un_backstage_a_plus_de_10_jours_augmente_de_1.outputs.result }}"
+          EXERCICE6_UN_BACKSTAGE_A_10_JOURS_OU_MOINS_AUGMENTE_DE_2_RESULTS: "${{ steps.exercice6_un_backstage_a_10_jours_ou_moins_augmente_de_2.outputs.result }}"
+          EXERCICE6_UN_BACKSTAGE_A_5_JOURS_OU_MOINS_AUGMENTE_DE_3_RESULTS: "${{ steps.exercice6_un_backstage_a_5_jours_ou_moins_augmente_de_3.outputs.result }}"
+          EXERCICE6_UN_BACKSTAGE_APRES_LE_CONCERT_TOMBE_A_ZERO_RESULTS: "${{ steps.exercice6_un_backstage_apres_le_concert_tombe_a_zero.outputs.result }}"
+          EXERCICE6_UN_BACKSTAGE_NE_DEPASSE_PAS_50_RESULTS: "${{ steps.exercice6_un_backstage_ne_depasse_pas_50.outputs.result }}"
+          EXERCICE6_UN_CONJURED_AVANT_PEREMPTION_BAISSE_DE_2_RESULTS: "${{ steps.exercice6_un_conjured_avant_peremption_baisse_de_2.outputs.result }}"
+          EXERCICE6_UN_CONJURED_APRES_PEREMPTION_BAISSE_DE_4_RESULTS: "${{ steps.exercice6_un_conjured_apres_peremption_baisse_de_4.outputs.result }}"
+          EXERCICE6_UN_CONJURED_NE_DEVIENT_PAS_NEGATIF_RESULTS: "${{ steps.exercice6_un_conjured_ne_devient_pas_negatif.outputs.result }}"
+        with:
+          runners: compilation,exercice1_la_facture_vide_a_un_total_de_0,exercice1_la_facture_avec_un_seul_article_sous_le_seuil_applique_la_tva_sans_remise,exercice1_la_facture_avec_un_seul_article_sur_le_seuil_applique_la_tva_et_la_remise,exercice1_la_facture_avec_plusieurs_articles_agrege_correctement,exercice1_la_facture_avec_un_total_exactement_a_100_ne_declenche_pas_la_remise,exercice1_la_methode_somme_ht_a_ete_extraite,exercice1_la_methode_appliquer_tva_a_ete_extraite,exercice1_la_methode_appliquer_remise_a_ete_extraite,exercice1_la_methode_calculer_total_est_courte_apres_extraction,exercice2_un_montant_nul_retourne_les_frais_de_port,exercice2_un_petit_montant_sous_le_seuil_des_frais_de_port_ajoute_les_frais_de_port,exercice2_un_montant_au_seuil_des_frais_de_port_offre_le_port,exercice2_un_montant_moyen_d_un_client_non_fidele_n_applique_ni_remise_ni_frais_de_port,exercice2_un_gros_montant_d_un_client_non_fidele_n_applique_pas_de_remise,exercice2_un_client_fidele_sous_le_seuil_de_remise_n_applique_pas_de_remise,exercice2_un_client_fidele_sur_le_seuil_de_remise_applique_la_remise,exercice2_un_client_fidele_avec_un_gros_montant_applique_la_remise,exercice2_la_constante_taux_tva_a_ete_extraite,exercice2_la_constante_seuil_remise_a_ete_extraite,exercice2_la_constante_taux_remise_a_ete_extraite,exercice2_la_constante_seuil_frais_port_a_ete_extraite,exercice2_la_constante_montant_frais_port_a_ete_extraite,exercice3_afficher_un_menu_vide_retourne_l_entete,exercice3_afficher_deux_options_les_liste_dans_l_ordre_d_insertion,exercice3_choisir_une_option_execute_l_action,exercice3_choisir_un_indice_invalide_leve_une_exception,exercice3_afficher_l_historique_vide_retourne_l_entete_seul,exercice3_afficher_l_historique_apres_quelques_choix_les_liste_dans_l_ordre,exercice3_l_historique_est_tronque_a_10_le_onzieme_chasse_le_premier,exercice3_la_classe_historique_existe,exercice3_la_classe_historique_a_les_trois_methodes_attendues,exercice3_le_menu_utilise_un_champ_de_type_historique,exercice4_un_chien_fait_wouaf,exercice4_un_chat_fait_miaou,exercice4_une_vache_fait_meuh,exercice4_un_canard_fait_coin_coin,exercice4_le_champ_nom_est_accessible,exercice4_la_classe_animal_est_abstract,exercice4_la_classe_chien_herite_d_animal,exercice4_toutes_les_especes_ont_leur_propre_classe,exercice4_le_champ_type_string_a_ete_supprime,exercice4_la_fabrique_cree_la_bonne_espece,exercice5_un_mail_minimal_sans_importance_sans_pieces_jointes,exercice5_un_mail_important_affiche_le_tag,exercice5_les_pieces_jointes_sont_listees,exercice5_un_mail_sans_pieces_jointes_n_a_pas_de_ligne_de_pieces,exercice5_la_classe_message_email_est_un_record,exercice5_la_classe_message_email_a_7_composants,exercice5_la_nouvelle_signature_utilise_message_email,exercice5_la_nouvelle_methode_produit_le_meme_format,exercice6_un_item_normal_avant_peremption_baisse_quality_de_1_et_sellin_de_1,exercice6_un_item_normal_apres_peremption_baisse_quality_de_2,exercice6_un_item_normal_ne_voit_jamais_sa_quality_devenir_negative,exercice6_un_aged_brie_augmente_en_quality_avec_le_temps,exercice6_un_aged_brie_apres_peremption_augmente_deux_fois_plus_vite,exercice6_un_aged_brie_ne_depasse_jamais_50_en_quality,exercice6_un_sulfuras_n_est_jamais_vendu_ni_degrade,exercice6_un_sulfuras_conserve_sa_quality_quelle_que_soit_la_date,exercice6_un_backstage_a_plus_de_10_jours_augmente_de_1,exercice6_un_backstage_a_10_jours_ou_moins_augmente_de_2,exercice6_un_backstage_a_5_jours_ou_moins_augmente_de_3,exercice6_un_backstage_apres_le_concert_tombe_a_zero,exercice6_un_backstage_ne_depasse_pas_50,exercice6_un_conjured_avant_peremption_baisse_de_2,exercice6_un_conjured_apres_peremption_baisse_de_4,exercice6_un_conjured_ne_devient_pas_negatif
+
+      - name: Sauvegarder le cache des rapports Surefire
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: target/surefire-reports
+          key: surefire-${{ github.ref_name }}-${{ github.sha }}
+      #@@@AUTOGRADING-END@@@
