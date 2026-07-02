@@ -21,7 +21,7 @@ jobs:
     if: github.repository != 'IUTInfoAix-R203/template-tp-java'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0  # nécessaire pour que le hook / le lint voient
                           # la branche 'solution' et distinguent mode
