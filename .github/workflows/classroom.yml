@@ -31,7 +31,7 @@ jobs:
     if: github.repository != 'IUTInfoAix-R203/template-tp-java'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -55,7 +55,7 @@ jobs:
 
       - name: Restaurer le cache des rapports Surefire
         id: surefire_cache
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: target/surefire-reports
           key: surefire-${{ github.ref_name }}-${{ github.sha }}
@@ -872,7 +872,7 @@ jobs:
 
       - name: Sauvegarder le cache des rapports Surefire
         if: always()
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: target/surefire-reports
           key: surefire-${{ github.ref_name }}-${{ github.sha }}
